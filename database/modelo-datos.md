@@ -1,6 +1,16 @@
 # Modelo de Datos
 
+## Descripción General
+
+El sistema de gestión de inventario permite administrar productos y registrar los movimientos de entrada y salida realizados por los usuarios autorizados.
+
+---
+
 ## Usuario
+
+### Descripción
+
+Representa al administrador o usuario autorizado que realiza operaciones dentro del sistema.
 
 | Campo | Tipo |
 |---------|---------|
@@ -13,6 +23,10 @@
 ---
 
 ## Producto
+
+### Descripción
+
+Representa un producto almacenado dentro del inventario.
 
 | Campo | Tipo |
 |---------|---------|
@@ -29,6 +43,10 @@
 
 ## Movimiento
 
+### Descripción
+
+Representa una entrada o salida de inventario asociada a un producto y registrada por un usuario.
+
 | Campo | Tipo |
 |---------|---------|
 | id | UUID |
@@ -43,6 +61,17 @@
 
 # Relaciones
 
-Producto 1 ---- N Movimiento
+Producto (1) ---- (N) Movimiento
 
-Usuario 1 ---- N Movimiento
+Usuario (1) ---- (N) Movimiento
+
+---
+
+# Reglas de Negocio
+
+- Un producto puede tener múltiples movimientos de inventario.
+- Un movimiento debe estar asociado a un único producto.
+- Un usuario puede registrar múltiples movimientos.
+- Un movimiento debe estar asociado a un único usuario.
+- El stock actual del producto debe actualizarse cada vez que se registre un movimiento.
+- El sistema debe alertar cuando el stock actual sea menor o igual al stock mínimo definido.
