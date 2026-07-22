@@ -6,6 +6,7 @@ Participantes:
 
 - María Margarita Álvarez
 - Santiago Cabezas
+- Hose Alfredo Ramirez Espinosa
 
 ## Temas tratados
 

@@ -8,7 +8,7 @@ Administrador
 
 CU01 - Iniciar sesión
 
-CU02 - Gestionar productos
+CU02 - Administrar productos
 
 CU03 - Registrar entrada de inventario
 
