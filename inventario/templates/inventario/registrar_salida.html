@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Registrar salida - Sistema de Inventario</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+        }
+
+        header {
+            background-color: #1f4e3d;
+            color: white;
+            padding: 25px 40px;
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 15px;
+        }
+
+        main {
+            max-width: 700px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .contenedor {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        h2 {
+            color: #c62828;
+            margin-bottom: 10px;
+        }
+
+        .descripcion {
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .producto {
+            background-color: #f4f6f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        .producto strong {
+            display: block;
+            font-size: 20px;
+            color: #1f4e3d;
+            margin-bottom: 8px;
+        }
+
+        .producto span {
+            color: #666;
+        }
+
+        .campo {
+            margin-bottom: 20px;
+        }
+
+        .campo label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .campo input,
+        .campo textarea {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        .campo textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .errores {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .errores ul {
+            margin-left: 20px;
+        }
+
+        .botones {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .boton {
+            display: inline-block;
+            border: none;
+            background-color: #c62828;
+            color: white;
+            text-decoration: none;
+            padding: 11px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .boton:hover {
+            background-color: #8e0000;
+        }
+
+        .boton-cancelar {
+            background-color: #777;
+        }
+
+        .boton-cancelar:hover {
+            background-color: #555;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #777;
+            font-size: 14px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <h1>Sistema de Inventario</h1>
+
+    <p>Mini Mercado Ecológico</p>
+
+</header>
+
+
+<main>
+
+    <section class="contenedor">
+
+        <h2>Registrar salida</h2>
+
+        <p class="descripcion">
+            Registra la salida de unidades del inventario.
+        </p>
+
+
+        <div class="producto">
+
+            <strong>
+                {{ producto.nombre }}
+            </strong>
+
+            <span>
+                Stock disponible:
+                {{ producto.stock_actual }}
+                {{ producto.unidad_medida }}
+            </span>
+
+        </div>
+
+
+        {% if errores %}
+
+            <div class="errores">
+
+                <ul>
+
+                    {% for error in errores %}
+
+                        <li>
+                            {{ error }}
+                        </li>
+
+                    {% endfor %}
+
+                </ul>
+
+            </div>
+
+        {% endif %}
+
+
+        <form method="post">
+
+            {% csrf_token %}
+
+
+            <div class="campo">
+
+                <label for="cantidad">
+                    Cantidad a retirar
+                </label>
+
+                <input
+                    type="number"
+                    id="cantidad"
+                    name="cantidad"
+                    min="0.01"
+                    step="0.01"
+                    max="{{ producto.stock_actual }}"
+                    value="{{ cantidad }}"
+                    placeholder="Ejemplo: 5"
+                    required
+                >
+
+            </div>
+
+
+            <div class="campo">
+
+                <label for="observacion">
+                    Observación
+                </label>
+
+                <textarea
+                    id="observacion"
+                    name="observacion"
+                    placeholder="Ejemplo: Venta de producto"
+                >{{ observacion }}</textarea>
+
+            </div>
+
+
+            <div class="botones">
+
+                <button
+                    type="submit"
+                    class="boton"
+                >
+                    Registrar salida
+                </button>
+
+                <a
+                    href="{% url 'productos' %}"
+                    class="boton boton-cancelar"
+                >
+                    Cancelar
+                </a>
+
+            </div>
+
+        </form>
+
+    </section>
+
+</main>
+
+
+<footer>
+
+    Sistema de Inventario · Mini Mercado Ecológico
+
+</footer>
+
+</body>
+
+</html>

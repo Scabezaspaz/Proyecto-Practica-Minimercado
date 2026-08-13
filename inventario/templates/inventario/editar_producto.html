@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Editar producto - Sistema de Inventario</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+        }
+
+        header {
+            background-color: #1f4e3d;
+            color: white;
+            padding: 25px 40px;
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 15px;
+        }
+
+        main {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .encabezado {
+            margin-bottom: 25px;
+        }
+
+        .encabezado h2 {
+            color: #1f4e3d;
+            margin-bottom: 8px;
+        }
+
+        .encabezado p {
+            color: #666;
+        }
+
+        .formulario {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .campo {
+            margin-bottom: 20px;
+        }
+
+        .campo label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #444;
+        }
+
+        .campo input,
+        .campo textarea {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+            font-family: Arial, sans-serif;
+        }
+
+        .campo textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .campo input:focus,
+        .campo textarea:focus {
+            outline: none;
+            border-color: #1f4e3d;
+        }
+
+        .fila {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .stock-actual {
+            background-color: #f4f6f8;
+            padding: 12px;
+            border-radius: 6px;
+            color: #555;
+        }
+
+        .errores {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef9a9a;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .errores ul {
+            padding-left: 20px;
+        }
+
+        .acciones {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .boton {
+            display: inline-block;
+            padding: 11px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .boton-secundario {
+            background-color: #e0e0e0;
+            color: #333;
+            border: none;
+        }
+
+        .boton-principal {
+            background-color: #1f4e3d;
+            color: white;
+            border: none;
+        }
+
+        .boton-principal:hover {
+            background-color: #16382d;
+        }
+
+        .boton-secundario:hover {
+            background-color: #d0d0d0;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #777;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .fila {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+
+            .acciones {
+                flex-direction: column;
+            }
+
+            .boton {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h1>Sistema de Inventario</h1>
+    <p>Mini Mercado Ecológico</p>
+</header>
+
+<main>
+
+    <section class="encabezado">
+        <h2>Editar producto</h2>
+
+        <p>
+            Actualiza la información del producto.
+            El stock actual se modifica únicamente mediante
+            movimientos de inventario.
+        </p>
+    </section>
+
+    <section class="formulario">
+
+        {% if errores %}
+
+            <div class="errores">
+
+                <strong>
+                    Revisa la información ingresada:
+                </strong>
+
+                <ul>
+                    {% for error in errores %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+
+            </div>
+
+        {% endif %}
+
+        <form method="post">
+
+            {% csrf_token %}
+
+            <div class="campo">
+
+                <label for="nombre">
+                    Nombre del producto *
+                </label>
+
+                <input
+                    type="text"
+                    id="nombre"
+                    name="nombre"
+                    value="{% if errores %}{{ nombre }}{% else %}{{ producto.nombre }}{% endif %}"
+                    maxlength="100"
+                    required
+                >
+
+            </div>
+
+            <div class="campo">
+
+                <label for="descripcion">
+                    Descripción
+                </label>
+
+                <textarea
+                    id="descripcion"
+                    name="descripcion"
+                >{% if errores %}{{ descripcion }}{% else %}{{ producto.descripcion }}{% endif %}</textarea>
+
+            </div>
+
+            <div class="campo">
+
+                <label for="unidad_medida">
+                    Unidad de medida *
+                </label>
+
+                <input
+                    type="text"
+                    id="unidad_medida"
+                    name="unidad_medida"
+                    value="{% if errores %}{{ unidad_medida }}{% else %}{{ producto.unidad_medida }}{% endif %}"
+                    maxlength="50"
+                    required
+                >
+
+            </div>
+
+            <div class="fila">
+
+                <div class="campo">
+
+                    <label>
+                        Stock actual
+                    </label>
+
+                    <div class="stock-actual">
+                        {{ producto.stock_actual }}
+                        {{ producto.unidad_medida }}
+                    </div>
+
+                </div>
+
+                <div class="campo">
+
+                    <label for="stock_minimo">
+                        Stock mínimo *
+                    </label>
+
+                    <input
+                        type="number"
+                        id="stock_minimo"
+                        name="stock_minimo"
+                        value="{% if errores %}{{ stock_minimo }}{% else %}{{ producto.stock_minimo }}{% endif %}"
+                        min="0"
+                        step="0.01"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+            <div class="acciones">
+
+                <a
+                    href="{% url 'productos' %}"
+                    class="boton boton-secundario"
+                >
+                    Cancelar
+                </a>
+
+                <button
+                    type="submit"
+                    class="boton boton-principal"
+                >
+                    Guardar cambios
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+</main>
+
+<footer>
+    Sistema de Inventario · Mini Mercado Ecológico
+</footer>
+
+</body>
+</html>

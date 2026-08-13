@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Productos - Sistema de Inventario</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+        }
+
+        header {
+            background-color: #1f4e3d;
+            color: white;
+            padding: 25px 40px;
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        header p {
+            font-size: 15px;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .encabezado {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .encabezado h2 {
+            color: #1f4e3d;
+        }
+
+        .boton {
+            display: inline-block;
+            background-color: #1f4e3d;
+            color: white;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .boton:hover {
+            background-color: #16382d;
+        }
+
+        .boton-entrada {
+            background-color: #2e7d32;
+        }
+
+        .boton-entrada:hover {
+            background-color: #1b5e20;
+        }
+
+        .boton-salida {
+            background-color: #c62828;
+        }
+
+        .boton-salida:hover {
+            background-color: #8e0000;
+        }
+
+        .boton-editar {
+            background-color: #546e7a;
+        }
+
+        .boton-editar:hover {
+            background-color: #37474f;
+        }
+
+        .busqueda {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .busqueda form {
+            display: flex;
+            gap: 10px;
+        }
+
+        .busqueda input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        .productos {
+            display: grid;
+            grid-template-columns: repeat(
+                auto-fit,
+                minmax(280px, 1fr)
+            );
+            gap: 20px;
+        }
+
+        .producto {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .producto h3 {
+            color: #1f4e3d;
+            margin-bottom: 10px;
+        }
+
+        .producto p {
+            color: #666;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        .stock {
+            margin-top: 15px;
+            padding: 12px;
+            background-color: #f4f6f8;
+            border-radius: 6px;
+        }
+
+        .stock strong {
+            color: #1f4e3d;
+        }
+
+        .stock-bajo {
+            color: #c62828;
+            font-weight: bold;
+        }
+
+        .acciones {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .sin-productos {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            color: #777;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #777;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+
+            .busqueda form {
+                flex-direction: column;
+            }
+
+            .acciones {
+                flex-direction: column;
+            }
+
+            .acciones .boton {
+                text-align: center;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<header>
+
+    <h1>Sistema de Inventario</h1>
+
+    <p>Mini Mercado Ecológico</p>
+
+</header>
+
+
+<main>
+
+    <div class="encabezado">
+
+        <h2>Productos</h2>
+
+        <a
+            href="{% url 'nuevo_producto' %}"
+            class="boton"
+        >
+            + Nuevo producto
+        </a>
+
+    </div>
+
+
+    <section class="busqueda">
+
+        <form method="get">
+
+            <input
+                type="text"
+                name="q"
+                value="{{ consulta }}"
+                placeholder="Buscar producto..."
+            >
+
+            <button
+                type="submit"
+                class="boton"
+            >
+                Buscar
+            </button>
+
+        </form>
+
+    </section>
+
+
+    {% if productos %}
+
+        <section class="productos">
+
+            {% for producto in productos %}
+
+                <article class="producto">
+
+                    <h3>
+                        {{ producto.nombre }}
+                    </h3>
+
+
+                    {% if producto.descripcion %}
+
+                        <p>
+                            {{ producto.descripcion }}
+                        </p>
+
+                    {% endif %}
+
+
+                    <p>
+                        <strong>Unidad:</strong>
+                        {{ producto.unidad_medida }}
+                    </p>
+
+
+                    <div class="stock">
+
+                        <strong>
+                            Stock actual:
+                        </strong>
+
+                        {{ producto.stock_actual }}
+                        {{ producto.unidad_medida }}
+
+                        <br>
+
+                        <strong>
+                            Stock mínimo:
+                        </strong>
+
+                        {{ producto.stock_minimo }}
+                        {{ producto.unidad_medida }}
+
+
+                        {% if producto.stock_actual <= producto.stock_minimo %}
+
+                            <br><br>
+
+                            <span class="stock-bajo">
+                                ⚠ Stock bajo
+                            </span>
+
+                        {% endif %}
+
+                    </div>
+
+
+                    <div class="acciones">
+
+                        <a
+                            href="{% url 'registrar_entrada' producto.id %}"
+                            class="boton boton-entrada"
+                        >
+                            + Entrada
+                        </a>
+
+
+                        <a
+                            href="{% url 'registrar_salida' producto.id %}"
+                            class="boton boton-salida"
+                        >
+                            − Salida
+                        </a>
+
+
+                        <a
+                            href="{% url 'editar_producto' producto.id %}"
+                            class="boton boton-editar"
+                        >
+                            Editar
+                        </a>
+
+                    </div>
+
+                </article>
+
+            {% endfor %}
+
+        </section>
+
+    {% else %}
+
+        <div class="sin-productos">
+
+            <p>
+
+                {% if consulta %}
+
+                    No se encontraron productos para
+                    "{{ consulta }}".
+
+                {% else %}
+
+                    No hay productos registrados.
+
+                {% endif %}
+
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</main>
+
+
+<footer>
+
+    Sistema de Inventario · Mini Mercado Ecológico
+
+</footer>
+
+</body>
+
+</html>
