@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db import models
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import authenticate, login, logout
 
 from .models import Producto, Movimiento
@@ -8,13 +8,18 @@ from .models import Producto, Movimiento
 
 @login_required(login_url='login')
 def inicio(request):
-    productos = Producto.objects.filter(activo=True)
+
+    productos = Producto.objects.filter(
+        activo=True
+    )
 
     total_productos = productos.count()
 
-    productos_stock_bajo = productos.filter(
+    productos_stock_bajo_lista = productos.filter(
         stock_actual__lte=models.F('stock_minimo')
-    ).count()
+    ).order_by('nombre')
+
+    productos_stock_bajo = productos_stock_bajo_lista.count()
 
     total_movimientos = Movimiento.objects.count()
 
@@ -26,6 +31,7 @@ def inicio(request):
     contexto = {
         'total_productos': total_productos,
         'productos_stock_bajo': productos_stock_bajo,
+        'productos_stock_bajo_lista': productos_stock_bajo_lista,
         'total_movimientos': total_movimientos,
         'ultimos_movimientos': ultimos_movimientos,
     }
@@ -39,7 +45,11 @@ def inicio(request):
 
 @login_required(login_url='login')
 def productos(request):
-    consulta = request.GET.get('q', '').strip()
+
+    consulta = request.GET.get(
+        'q',
+        ''
+    ).strip()
 
     productos = Producto.objects.filter(
         activo=True
@@ -50,7 +60,9 @@ def productos(request):
             nombre__icontains=consulta
         )
 
-    productos = productos.order_by('nombre')
+    productos = productos.order_by(
+        'nombre'
+    )
 
     contexto = {
         'productos': productos,
@@ -65,15 +77,38 @@ def productos(request):
 
 
 @login_required(login_url='login')
+@permission_required(
+    'inventario.add_producto',
+    raise_exception=True
+)
 def nuevo_producto(request):
 
     if request.method == 'POST':
 
-        nombre = request.POST.get('nombre', '').strip()
-        descripcion = request.POST.get('descripcion', '').strip()
-        unidad_medida = request.POST.get('unidad_medida', '').strip()
-        stock_actual = request.POST.get('stock_actual', '').strip()
-        stock_minimo = request.POST.get('stock_minimo', '').strip()
+        nombre = request.POST.get(
+            'nombre',
+            ''
+        ).strip()
+
+        descripcion = request.POST.get(
+            'descripcion',
+            ''
+        ).strip()
+
+        unidad_medida = request.POST.get(
+            'unidad_medida',
+            ''
+        ).strip()
+
+        stock_actual = request.POST.get(
+            'stock_actual',
+            ''
+        ).strip()
+
+        stock_minimo = request.POST.get(
+            'stock_minimo',
+            ''
+        ).strip()
 
         errores = []
 
@@ -100,6 +135,7 @@ def nuevo_producto(request):
         if not errores:
 
             try:
+
                 producto = Producto(
                     nombre=nombre,
                     descripcion=descripcion,
@@ -111,9 +147,12 @@ def nuevo_producto(request):
                 producto.full_clean()
                 producto.save()
 
-                return redirect('productos')
+                return redirect(
+                    'productos'
+                )
 
             except Exception:
+
                 errores.append(
                     'No fue posible registrar el producto. '
                     'Verifica los valores ingresados.'
@@ -141,7 +180,14 @@ def nuevo_producto(request):
 
 
 @login_required(login_url='login')
-def editar_producto(request, producto_id):
+@permission_required(
+    'inventario.change_producto',
+    raise_exception=True
+)
+def editar_producto(
+    request,
+    producto_id
+):
 
     producto = get_object_or_404(
         Producto,
@@ -151,10 +197,25 @@ def editar_producto(request, producto_id):
 
     if request.method == 'POST':
 
-        nombre = request.POST.get('nombre', '').strip()
-        descripcion = request.POST.get('descripcion', '').strip()
-        unidad_medida = request.POST.get('unidad_medida', '').strip()
-        stock_minimo = request.POST.get('stock_minimo', '').strip()
+        nombre = request.POST.get(
+            'nombre',
+            ''
+        ).strip()
+
+        descripcion = request.POST.get(
+            'descripcion',
+            ''
+        ).strip()
+
+        unidad_medida = request.POST.get(
+            'unidad_medida',
+            ''
+        ).strip()
+
+        stock_minimo = request.POST.get(
+            'stock_minimo',
+            ''
+        ).strip()
 
         errores = []
 
@@ -176,6 +237,7 @@ def editar_producto(request, producto_id):
         if not errores:
 
             try:
+
                 producto.nombre = nombre
                 producto.descripcion = descripcion
                 producto.unidad_medida = unidad_medida
@@ -184,9 +246,12 @@ def editar_producto(request, producto_id):
                 producto.full_clean()
                 producto.save()
 
-                return redirect('productos')
+                return redirect(
+                    'productos'
+                )
 
             except Exception:
+
                 errores.append(
                     'No fue posible actualizar el producto. '
                     'Verifica los valores ingresados.'
@@ -219,7 +284,14 @@ def editar_producto(request, producto_id):
 
 
 @login_required(login_url='login')
-def registrar_entrada(request, producto_id):
+@permission_required(
+    'inventario.add_movimiento',
+    raise_exception=True
+)
+def registrar_entrada(
+    request,
+    producto_id
+):
 
     producto = get_object_or_404(
         Producto,
@@ -249,6 +321,7 @@ def registrar_entrada(request, producto_id):
         if not errores:
 
             try:
+
                 movimiento = Movimiento(
                     producto=producto,
                     usuario=request.user,
@@ -259,7 +332,9 @@ def registrar_entrada(request, producto_id):
 
                 movimiento.save()
 
-                return redirect('productos')
+                return redirect(
+                    'productos'
+                )
 
             except Exception as e:
 
@@ -292,7 +367,14 @@ def registrar_entrada(request, producto_id):
 
 
 @login_required(login_url='login')
-def registrar_salida(request, producto_id):
+@permission_required(
+    'inventario.add_movimiento',
+    raise_exception=True
+)
+def registrar_salida(
+    request,
+    producto_id
+):
 
     producto = get_object_or_404(
         Producto,
@@ -322,6 +404,7 @@ def registrar_salida(request, producto_id):
         if not errores:
 
             try:
+
                 movimiento = Movimiento(
                     producto=producto,
                     usuario=request.user,
@@ -332,7 +415,9 @@ def registrar_salida(request, producto_id):
 
                 movimiento.save()
 
-                return redirect('productos')
+                return redirect(
+                    'productos'
+                )
 
             except Exception as e:
 
@@ -438,12 +523,19 @@ def movimientos(request):
 def iniciar_sesion(request):
 
     if request.user.is_authenticated:
-        return redirect('inicio')
+        return redirect(
+            'inicio'
+        )
 
     if request.method == 'POST':
 
-        usuario = request.POST.get('usuario')
-        contraseña = request.POST.get('contraseña')
+        usuario = request.POST.get(
+            'usuario'
+        )
+
+        contraseña = request.POST.get(
+            'contraseña'
+        )
 
         usuario_autenticado = authenticate(
             request,
@@ -458,7 +550,9 @@ def iniciar_sesion(request):
                 usuario_autenticado
             )
 
-            return redirect('inicio')
+            return redirect(
+                'inicio'
+            )
 
         return render(
             request,
@@ -481,4 +575,6 @@ def cerrar_sesion(request):
 
     logout(request)
 
-    return redirect('login')
+    return redirect(
+        'login'
+    )
