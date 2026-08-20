@@ -8,6 +8,16 @@ from django.db import models, transaction
 
 
 class Producto(models.Model):
+
+    UNIDADES_MEDIDA = [
+        ('kg', 'Kilogramo (kg)'),
+        ('lb', 'Libra (lb)'),
+        ('g', 'Gramo (g)'),
+        ('und', 'Unidad (und)'),
+        ('L', 'Litro (L)'),
+        ('ml', 'Mililitro (ml)'),
+    ]
+
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -23,7 +33,8 @@ class Producto(models.Model):
     )
 
     unidad_medida = models.CharField(
-        max_length=50
+        max_length=10,
+        choices=UNIDADES_MEDIDA
     )
 
     stock_actual = models.DecimalField(
@@ -55,6 +66,7 @@ class Producto(models.Model):
 
 
 class Movimiento(models.Model):
+
     TIPO_MOVIMIENTO = [
         ('ENTRADA', 'Entrada'),
         ('SALIDA', 'Salida'),
@@ -68,7 +80,7 @@ class Movimiento(models.Model):
 
     producto = models.ForeignKey(
         Producto,
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name='movimientos'
     )
 
@@ -116,17 +128,21 @@ class Movimiento(models.Model):
                 'cantidad': 'La cantidad debe ser mayor que cero.'
             })
 
-        if self._state.adding and self.tipo_movimiento == 'SALIDA':
-            if self.cantidad > self.producto.stock_actual:
-                raise ValidationError({
-                    'cantidad': (
-                        f'No hay suficiente stock disponible. '
-                        f'Stock actual: {self.producto.stock_actual} '
-                        f'{self.producto.unidad_medida}.'
-                    )
-                })
+        if (
+            self._state.adding
+            and self.tipo_movimiento == 'SALIDA'
+            and self.cantidad > self.producto.stock_actual
+        ):
+            raise ValidationError({
+                'cantidad': (
+                    f'No hay suficiente stock disponible. '
+                    f'Stock actual: {self.producto.stock_actual} '
+                    f'{self.producto.unidad_medida}.'
+                )
+            })
 
     def save(self, *args, **kwargs):
+
         if not self._state.adding:
             raise ValidationError(
                 'Los movimientos existentes no se pueden modificar.'
@@ -135,14 +151,17 @@ class Movimiento(models.Model):
         self.full_clean()
 
         with transaction.atomic():
+
             producto = Producto.objects.select_for_update().get(
                 pk=self.producto_id
             )
 
             if self.tipo_movimiento == 'ENTRADA':
+
                 producto.stock_actual += self.cantidad
 
             elif self.tipo_movimiento == 'SALIDA':
+
                 if self.cantidad > producto.stock_actual:
                     raise ValidationError({
                         'cantidad': (
@@ -161,25 +180,7 @@ class Movimiento(models.Model):
             super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        with transaction.atomic():
-            producto = Producto.objects.select_for_update().get(
-                pk=self.producto_id
-            )
 
-            if self.tipo_movimiento == 'ENTRADA':
-                producto.stock_actual -= self.cantidad
-
-            elif self.tipo_movimiento == 'SALIDA':
-                producto.stock_actual += self.cantidad
-
-            if producto.stock_actual < Decimal("0.00"):
-                raise ValidationError(
-                    'No se puede eliminar este movimiento porque '
-                    'el stock resultante sería negativo.'
-                )
-
-            producto.save(
-                update_fields=['stock_actual']
-            )
-
-            super().delete(*args, **kwargs)
+        raise ValidationError(
+            'Los movimientos existentes no se pueden eliminar.'
+        )

@@ -94,6 +94,7 @@
             border: 1px solid #ccc;
             border-radius: 6px;
             font-size: 15px;
+            font-family: Arial, sans-serif;
         }
 
         .campo textarea {
@@ -101,9 +102,16 @@
             resize: vertical;
         }
 
+        .campo input:focus,
+        .campo textarea:focus {
+            outline: none;
+            border-color: #1f4e3d;
+        }
+
         .errores {
             background-color: #ffebee;
             color: #c62828;
+            border: 1px solid #ef9a9a;
             padding: 15px;
             border-radius: 6px;
             margin-bottom: 20px;
@@ -150,6 +158,18 @@
             font-size: 14px;
         }
 
+        @media (max-width: 600px) {
+
+            .botones {
+                flex-direction: column;
+            }
+
+            .boton {
+                text-align: center;
+            }
+
+        }
+
     </style>
 
 </head>
@@ -185,19 +205,19 @@
             <span>
                 Stock disponible:
                 {{ producto.stock_actual }}
-                {{ producto.unidad_medida }}
+                {{ producto.get_unidad_medida_display }}
             </span>
 
         </div>
 
 
-        {% if errores %}
+        {% if formulario.non_field_errors %}
 
             <div class="errores">
 
                 <ul>
 
-                    {% for error in errores %}
+                    {% for error in formulario.non_field_errors %}
 
                         <li>
                             {{ error }}
@@ -219,36 +239,62 @@
 
             <div class="campo">
 
-                <label for="cantidad">
+                <label for="{{ formulario.cantidad.id_for_label }}">
                     Cantidad a retirar
                 </label>
 
-                <input
-                    type="number"
-                    id="cantidad"
-                    name="cantidad"
-                    min="0.01"
-                    step="0.01"
-                    max="{{ producto.stock_actual }}"
-                    value="{{ cantidad }}"
-                    placeholder="Ejemplo: 5"
-                    required
-                >
+                {{ formulario.cantidad }}
+
+                {% if formulario.cantidad.errors %}
+
+                    <div class="errores">
+
+                        <ul>
+
+                            {% for error in formulario.cantidad.errors %}
+
+                                <li>
+                                    {{ error }}
+                                </li>
+
+                            {% endfor %}
+
+                        </ul>
+
+                    </div>
+
+                {% endif %}
 
             </div>
 
 
             <div class="campo">
 
-                <label for="observacion">
+                <label for="{{ formulario.observacion.id_for_label }}">
                     Observación
                 </label>
 
-                <textarea
-                    id="observacion"
-                    name="observacion"
-                    placeholder="Ejemplo: Venta de producto"
-                >{{ observacion }}</textarea>
+                {{ formulario.observacion }}
+
+                {% if formulario.observacion.errors %}
+
+                    <div class="errores">
+
+                        <ul>
+
+                            {% for error in formulario.observacion.errors %}
+
+                                <li>
+                                    {{ error }}
+                                </li>
+
+                            {% endfor %}
+
+                        </ul>
+
+                    </div>
+
+                {% endif %}
 
             </div>
 

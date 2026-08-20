@@ -1,9 +1,49 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.db import models
-from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
+from django.db import models
+from django.shortcuts import get_object_or_404, redirect, render
 
-from .models import Producto, Movimiento
+from .forms import (
+    MovimientoForm,
+    ProductoEditarForm,
+    ProductoForm,
+)
+from .models import Movimiento, Producto
+
+
+def agregar_errores_validacion(formulario, error):
+    """
+    Agrega los errores provenientes del modelo al formulario
+    para que puedan ser mostrados correctamente en la interfaz.
+    """
+
+    if hasattr(error, 'message_dict'):
+
+        for campo, mensajes in error.message_dict.items():
+
+            for mensaje in mensajes:
+
+                if campo in formulario.fields:
+                    formulario.add_error(
+                        campo,
+                        mensaje
+                    )
+
+                else:
+                    formulario.add_error(
+                        None,
+                        mensaje
+                    )
+
+    else:
+
+        for mensaje in error.messages:
+
+            formulario.add_error(
+                None,
+                mensaje
+            )
 
 
 @login_required(login_url='login')
@@ -13,20 +53,28 @@ def inicio(request):
         activo=True
     )
 
-    total_productos = productos.count()
-
     productos_stock_bajo_lista = productos.filter(
         stock_actual__lte=models.F('stock_minimo')
-    ).order_by('nombre')
+    ).order_by(
+        'nombre'
+    )
+
+    total_productos = productos.count()
 
     productos_stock_bajo = productos_stock_bajo_lista.count()
 
     total_movimientos = Movimiento.objects.count()
 
-    ultimos_movimientos = Movimiento.objects.select_related(
-        'producto',
-        'usuario'
-    ).order_by('-fecha_movimiento')[:5]
+    ultimos_movimientos = (
+        Movimiento.objects
+        .select_related(
+            'producto',
+            'usuario'
+        )
+        .order_by(
+            '-fecha_movimiento'
+        )[:5]
+    )
 
     contexto = {
         'total_productos': total_productos,
@@ -56,6 +104,7 @@ def productos(request):
     )
 
     if consulta:
+
         productos = productos.filter(
             nombre__icontains=consulta
         )
@@ -64,9 +113,19 @@ def productos(request):
         'nombre'
     )
 
+    productos_stock_bajo_ids = set(
+        productos.filter(
+            stock_actual__lte=models.F('stock_minimo')
+        ).values_list(
+            'id',
+            flat=True
+        )
+    )
+
     contexto = {
         'productos': productos,
         'consulta': consulta,
+        'productos_stock_bajo_ids': productos_stock_bajo_ids,
     }
 
     return render(
@@ -77,117 +136,48 @@ def productos(request):
 
 
 @login_required(login_url='login')
-@permission_required(
-    'inventario.add_producto',
-    raise_exception=True
-)
 def nuevo_producto(request):
 
     if request.method == 'POST':
 
-        nombre = request.POST.get(
-            'nombre',
-            ''
-        ).strip()
+        formulario = ProductoForm(
+            request.POST
+        )
 
-        descripcion = request.POST.get(
-            'descripcion',
-            ''
-        ).strip()
-
-        unidad_medida = request.POST.get(
-            'unidad_medida',
-            ''
-        ).strip()
-
-        stock_actual = request.POST.get(
-            'stock_actual',
-            ''
-        ).strip()
-
-        stock_minimo = request.POST.get(
-            'stock_minimo',
-            ''
-        ).strip()
-
-        errores = []
-
-        if not nombre:
-            errores.append(
-                'El nombre del producto es obligatorio.'
-            )
-
-        if not unidad_medida:
-            errores.append(
-                'La unidad de medida es obligatoria.'
-            )
-
-        if not stock_actual:
-            errores.append(
-                'El stock actual es obligatorio.'
-            )
-
-        if not stock_minimo:
-            errores.append(
-                'El stock mínimo es obligatorio.'
-            )
-
-        if not errores:
+        if formulario.is_valid():
 
             try:
 
-                producto = Producto(
-                    nombre=nombre,
-                    descripcion=descripcion,
-                    unidad_medida=unidad_medida,
-                    stock_actual=stock_actual,
-                    stock_minimo=stock_minimo,
-                )
-
-                producto.full_clean()
-                producto.save()
+                formulario.save()
 
                 return redirect(
                     'productos'
                 )
 
-            except Exception:
+            except ValidationError as error:
 
-                errores.append(
-                    'No fue posible registrar el producto. '
-                    'Verifica los valores ingresados.'
+                agregar_errores_validacion(
+                    formulario,
+                    error
                 )
 
-        contexto = {
-            'errores': errores,
-            'nombre': nombre,
-            'descripcion': descripcion,
-            'unidad_medida': unidad_medida,
-            'stock_actual': stock_actual,
-            'stock_minimo': stock_minimo,
-        }
+    else:
 
-        return render(
-            request,
-            'inventario/nuevo_producto.html',
-            contexto
-        )
+        formulario = ProductoForm()
+
+    contexto = {
+        'formulario': formulario,
+    }
 
     return render(
         request,
-        'inventario/nuevo_producto.html'
+        'inventario/nuevo_producto.html',
+        contexto
     )
 
 
 @login_required(login_url='login')
-@permission_required(
-    'inventario.change_producto',
-    raise_exception=True
-)
-def editar_producto(
-    request,
-    producto_id
-):
+def editar_producto(request, producto_id):
 
     producto = get_object_or_404(
         Producto,
@@ -197,83 +187,37 @@ def editar_producto(
 
     if request.method == 'POST':
 
-        nombre = request.POST.get(
-            'nombre',
-            ''
-        ).strip()
+        formulario = ProductoEditarForm(
+            request.POST,
+            instance=producto
+        )
 
-        descripcion = request.POST.get(
-            'descripcion',
-            ''
-        ).strip()
-
-        unidad_medida = request.POST.get(
-            'unidad_medida',
-            ''
-        ).strip()
-
-        stock_minimo = request.POST.get(
-            'stock_minimo',
-            ''
-        ).strip()
-
-        errores = []
-
-        if not nombre:
-            errores.append(
-                'El nombre del producto es obligatorio.'
-            )
-
-        if not unidad_medida:
-            errores.append(
-                'La unidad de medida es obligatoria.'
-            )
-
-        if not stock_minimo:
-            errores.append(
-                'El stock mínimo es obligatorio.'
-            )
-
-        if not errores:
+        if formulario.is_valid():
 
             try:
 
-                producto.nombre = nombre
-                producto.descripcion = descripcion
-                producto.unidad_medida = unidad_medida
-                producto.stock_minimo = stock_minimo
-
-                producto.full_clean()
-                producto.save()
+                formulario.save()
 
                 return redirect(
                     'productos'
                 )
 
-            except Exception:
+            except ValidationError as error:
 
-                errores.append(
-                    'No fue posible actualizar el producto. '
-                    'Verifica los valores ingresados.'
+                agregar_errores_validacion(
+                    formulario,
+                    error
                 )
 
-        contexto = {
-            'producto': producto,
-            'errores': errores,
-            'nombre': nombre,
-            'descripcion': descripcion,
-            'unidad_medida': unidad_medida,
-            'stock_minimo': stock_minimo,
-        }
+    else:
 
-        return render(
-            request,
-            'inventario/editar_producto.html',
-            contexto
+        formulario = ProductoEditarForm(
+            instance=producto
         )
 
     contexto = {
         'producto': producto,
+        'formulario': formulario,
     }
 
     return render(
@@ -283,14 +227,11 @@ def editar_producto(
     )
 
 
-@login_required(login_url='login')
-@permission_required(
-    'inventario.add_movimiento',
-    raise_exception=True
-)
-def registrar_entrada(
+def registrar_movimiento(
     request,
-    producto_id
+    producto_id,
+    tipo_movimiento,
+    template
 ):
 
     producto = get_object_or_404(
@@ -301,34 +242,21 @@ def registrar_entrada(
 
     if request.method == 'POST':
 
-        cantidad = request.POST.get(
-            'cantidad',
-            ''
-        ).strip()
+        formulario = MovimientoForm(
+            request.POST
+        )
 
-        observacion = request.POST.get(
-            'observacion',
-            ''
-        ).strip()
-
-        errores = []
-
-        if not cantidad:
-            errores.append(
-                'La cantidad es obligatoria.'
-            )
-
-        if not errores:
+        if formulario.is_valid():
 
             try:
 
-                movimiento = Movimiento(
-                    producto=producto,
-                    usuario=request.user,
-                    tipo_movimiento='ENTRADA',
-                    cantidad=cantidad,
-                    observacion=observacion
+                movimiento = formulario.save(
+                    commit=False
                 )
+
+                movimiento.producto = producto
+                movimiento.usuario = request.user
+                movimiento.tipo_movimiento = tipo_movimiento
 
                 movimiento.save()
 
@@ -336,116 +264,48 @@ def registrar_entrada(
                     'productos'
                 )
 
-            except Exception as e:
+            except ValidationError as error:
 
-                errores.append(
-                    str(e)
+                agregar_errores_validacion(
+                    formulario,
+                    error
                 )
 
-        contexto = {
-            'producto': producto,
-            'errores': errores,
-            'cantidad': cantidad,
-            'observacion': observacion,
-        }
+    else:
 
-        return render(
-            request,
-            'inventario/registrar_entrada.html',
-            contexto
-        )
+        formulario = MovimientoForm()
 
     contexto = {
         'producto': producto,
+        'formulario': formulario,
     }
 
     return render(
         request,
-        'inventario/registrar_entrada.html',
+        template,
         contexto
     )
 
 
 @login_required(login_url='login')
-@permission_required(
-    'inventario.add_movimiento',
-    raise_exception=True
-)
-def registrar_salida(
-    request,
-    producto_id
-):
+def registrar_entrada(request, producto_id):
 
-    producto = get_object_or_404(
-        Producto,
-        id=producto_id,
-        activo=True
+    return registrar_movimiento(
+        request=request,
+        producto_id=producto_id,
+        tipo_movimiento='ENTRADA',
+        template='inventario/registrar_entrada.html'
     )
 
-    if request.method == 'POST':
 
-        cantidad = request.POST.get(
-            'cantidad',
-            ''
-        ).strip()
+@login_required(login_url='login')
+def registrar_salida(request, producto_id):
 
-        observacion = request.POST.get(
-            'observacion',
-            ''
-        ).strip()
-
-        errores = []
-
-        if not cantidad:
-            errores.append(
-                'La cantidad es obligatoria.'
-            )
-
-        if not errores:
-
-            try:
-
-                movimiento = Movimiento(
-                    producto=producto,
-                    usuario=request.user,
-                    tipo_movimiento='SALIDA',
-                    cantidad=cantidad,
-                    observacion=observacion
-                )
-
-                movimiento.save()
-
-                return redirect(
-                    'productos'
-                )
-
-            except Exception as e:
-
-                errores.append(
-                    str(e)
-                )
-
-        contexto = {
-            'producto': producto,
-            'errores': errores,
-            'cantidad': cantidad,
-            'observacion': observacion,
-        }
-
-        return render(
-            request,
-            'inventario/registrar_salida.html',
-            contexto
-        )
-
-    contexto = {
-        'producto': producto,
-    }
-
-    return render(
-        request,
-        'inventario/registrar_salida.html',
-        contexto
+    return registrar_movimiento(
+        request=request,
+        producto_id=producto_id,
+        tipo_movimiento='SALIDA',
+        template='inventario/registrar_salida.html'
     )
 
 
@@ -467,9 +327,12 @@ def movimientos(request):
         ''
     ).strip()
 
-    movimientos = Movimiento.objects.select_related(
-        'producto',
-        'usuario'
+    movimientos = (
+        Movimiento.objects
+        .select_related(
+            'producto',
+            'usuario'
+        )
     )
 
     if producto_busqueda:
@@ -478,7 +341,10 @@ def movimientos(request):
             producto__nombre__icontains=producto_busqueda
         )
 
-    if tipo in ['ENTRADA', 'SALIDA']:
+    if tipo in [
+        'ENTRADA',
+        'SALIDA'
+    ]:
 
         movimientos = movimientos.filter(
             tipo_movimiento=tipo
@@ -496,13 +362,14 @@ def movimientos(request):
 
     usuarios = (
         Movimiento.objects
-        .select_related('usuario')
         .values(
             'usuario__id',
             'usuario__username'
         )
         .distinct()
-        .order_by('usuario__username')
+        .order_by(
+            'usuario__username'
+        )
     )
 
     contexto = {
@@ -523,6 +390,7 @@ def movimientos(request):
 def iniciar_sesion(request):
 
     if request.user.is_authenticated:
+
         return redirect(
             'inicio'
         )

@@ -1,7 +1,9 @@
 <!DOCTYPE html>
+
 <html lang="es">
 
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -274,8 +276,13 @@
 
 
                     <p>
-                        <strong>Unidad:</strong>
+
+                        <strong>
+                            Unidad:
+                        </strong>
+
                         {{ producto.unidad_medida }}
+
                     </p>
 
 
@@ -298,9 +305,10 @@
                         {{ producto.unidad_medida }}
 
 
-                        {% if producto.stock_actual <= producto.stock_minimo %}
+                        {% if producto.id in productos_stock_bajo_ids %}
 
-                            <br><br>
+                            <br>
+                            <br>
 
                             <span class="stock-bajo">
                                 ⚠ Stock bajo

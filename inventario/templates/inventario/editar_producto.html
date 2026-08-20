@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <title>Editar producto - Sistema de Inventario</title>
 
     <style>
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -72,13 +74,15 @@
         }
 
         .campo input,
-        .campo textarea {
+        .campo textarea,
+        .campo select {
             width: 100%;
             padding: 11px;
             border: 1px solid #ccc;
             border-radius: 6px;
             font-size: 15px;
             font-family: Arial, sans-serif;
+            background-color: white;
         }
 
         .campo textarea {
@@ -87,7 +91,8 @@
         }
 
         .campo input:focus,
-        .campo textarea:focus {
+        .campo textarea:focus,
+        .campo select:focus {
             outline: none;
             border-color: #1f4e3d;
         }
@@ -162,6 +167,7 @@
         }
 
         @media (max-width: 600px) {
+
             .fila {
                 grid-template-columns: 1fr;
                 gap: 0;
@@ -174,20 +180,28 @@
             .boton {
                 text-align: center;
             }
+
         }
+
     </style>
+
 </head>
 
 <body>
 
 <header>
+
     <h1>Sistema de Inventario</h1>
+
     <p>Mini Mercado Ecológico</p>
+
 </header>
+
 
 <main>
 
     <section class="encabezado">
+
         <h2>Editar producto</h2>
 
         <p>
@@ -195,11 +209,13 @@
             El stock actual se modifica únicamente mediante
             movimientos de inventario.
         </p>
+
     </section>
+
 
     <section class="formulario">
 
-        {% if errores %}
+        {% if formulario.non_field_errors %}
 
             <div class="errores">
 
@@ -208,65 +224,113 @@
                 </strong>
 
                 <ul>
-                    {% for error in errores %}
-                        <li>{{ error }}</li>
+
+                    {% for error in formulario.non_field_errors %}
+
+                        <li>
+                            {{ error }}
+                        </li>
+
                     {% endfor %}
+
                 </ul>
 
             </div>
 
         {% endif %}
 
+
         <form method="post">
 
             {% csrf_token %}
 
+
             <div class="campo">
 
-                <label for="nombre">
+                <label for="{{ formulario.nombre.id_for_label }}">
                     Nombre del producto *
                 </label>
 
-                <input
-                    type="text"
-                    id="nombre"
-                    name="nombre"
-                    value="{% if errores %}{{ nombre }}{% else %}{{ producto.nombre }}{% endif %}"
-                    maxlength="100"
-                    required
-                >
+                {{ formulario.nombre }}
+
+                {% if formulario.nombre.errors %}
+
+                    <div class="errores">
+
+                        <ul>
+
+                            {% for error in formulario.nombre.errors %}
+
+                                <li>{{ error }}</li>
+
+                            {% endfor %}
+
+                        </ul>
+
+                    </div>
+
+                {% endif %}
 
             </div>
 
+
             <div class="campo">
 
-                <label for="descripcion">
+                <label for="{{ formulario.descripcion.id_for_label }}">
                     Descripción
                 </label>
 
-                <textarea
-                    id="descripcion"
-                    name="descripcion"
-                >{% if errores %}{{ descripcion }}{% else %}{{ producto.descripcion }}{% endif %}</textarea>
+                {{ formulario.descripcion }}
+
+                {% if formulario.descripcion.errors %}
+
+                    <div class="errores">
+
+                        <ul>
+
+                            {% for error in formulario.descripcion.errors %}
+
+                                <li>{{ error }}</li>
+
+                            {% endfor %}
+
+                        </ul>
+
+                    </div>
+
+                {% endif %}
 
             </div>
+
 
             <div class="campo">
 
-                <label for="unidad_medida">
+                <label for="{{ formulario.unidad_medida.id_for_label }}">
                     Unidad de medida *
                 </label>
 
-                <input
-                    type="text"
-                    id="unidad_medida"
-                    name="unidad_medida"
-                    value="{% if errores %}{{ unidad_medida }}{% else %}{{ producto.unidad_medida }}{% endif %}"
-                    maxlength="50"
-                    required
-                >
+                {{ formulario.unidad_medida }}
+
+                {% if formulario.unidad_medida.errors %}
+
+                    <div class="errores">
+
+                        <ul>
+
+                            {% for error in formulario.unidad_medida.errors %}
+
+                                <li>{{ error }}</li>
+
+                            {% endfor %}
+
+                        </ul>
+
+                    </div>
+
+                {% endif %}
 
             </div>
+
 
             <div class="fila">
 
@@ -277,31 +341,45 @@
                     </label>
 
                     <div class="stock-actual">
+
                         {{ producto.stock_actual }}
-                        {{ producto.unidad_medida }}
+                        {{ producto.get_unidad_medida_display }}
+
                     </div>
 
                 </div>
 
+
                 <div class="campo">
 
-                    <label for="stock_minimo">
+                    <label for="{{ formulario.stock_minimo.id_for_label }}">
                         Stock mínimo *
                     </label>
 
-                    <input
-                        type="number"
-                        id="stock_minimo"
-                        name="stock_minimo"
-                        value="{% if errores %}{{ stock_minimo }}{% else %}{{ producto.stock_minimo }}{% endif %}"
-                        min="0"
-                        step="0.01"
-                        required
-                    >
+                    {{ formulario.stock_minimo }}
+
+                    {% if formulario.stock_minimo.errors %}
+
+                        <div class="errores">
+
+                            <ul>
+
+                                {% for error in formulario.stock_minimo.errors %}
+
+                                    <li>{{ error }}</li>
+
+                                {% endfor %}
+
+                            </ul>
+
+                        </div>
+
+                    {% endif %}
 
                 </div>
 
             </div>
+
 
             <div class="acciones">
 
@@ -327,9 +405,13 @@
 
 </main>
 
+
 <footer>
+
     Sistema de Inventario · Mini Mercado Ecológico
+
 </footer>
 
 </body>
+
 </html>
