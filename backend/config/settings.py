@@ -10,22 +10,47 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Carga las variables de entorno desde backend/.env (si existe).
+load_dotenv(BASE_DIR / '.env')
+
+
+def env_bool(nombre, por_defecto='False'):
+    """Convierte una variable de entorno de texto a booleano."""
+    return os.getenv(nombre, por_defecto).lower() in ('1', 'true', 'yes', 'on')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-z%8d^ucb9@gt01&5szx)+3@m*s2u-c5r*cz9$g-0ddl4jxijd^'
+# La clave se lee desde el entorno. Solo se usa una clave insegura de
+# respaldo cuando DEBUG está activo (desarrollo local).
+DEBUG = env_bool('DEBUG', 'False')
+
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-insecure-solo-para-desarrollo-local-no-usar-en-produccion'
+    else:
+        raise RuntimeError(
+            'La variable de entorno SECRET_KEY es obligatoria cuando DEBUG=False.'
+        )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv('ALLOWED_HOSTS', '').split(',')
+    if host.strip()
+]
 
 
 # Application definition
@@ -76,11 +101,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'minimercado_db',
-        'USER': 'postgres',
-        'PASSWORD': 'Sc102007',
-        'HOST': 'localhost',
-        'PORT': '2025',
+        'NAME': os.getenv('DB_NAME', 'minimercado_db'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
 
@@ -122,11 +147,14 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 
+# Default primary key field type
+# https://docs.djangoproject.com/en/6.1/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
+# Nota: el nombre correcto de la variable es EMAIL_BACKEND (no MAILERS).
 
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

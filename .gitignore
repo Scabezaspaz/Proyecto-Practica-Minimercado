@@ -1,0 +1,29 @@
+# Entornos y secretos
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+
+# Base de datos local (SQLite, si se usa)
+*.sqlite3
+
+# Django
+/backend/staticfiles/
+/backend/media/
+
+# Editores / IDE
+.vscode/
+.idea/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
