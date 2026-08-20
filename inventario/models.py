@@ -64,6 +64,33 @@ class Producto(models.Model):
     def __str__(self):
         return self.nombre
 
+    def clean(self):
+        super().clean()
+
+        if self.nombre:
+            self.nombre = self.nombre.strip()
+
+        if not self.nombre:
+            return
+
+        existe_duplicado = (
+            Producto.objects
+            .filter(
+                nombre__iexact=self.nombre,
+                activo=True
+            )
+            .exclude(pk=self.pk)
+            .exists()
+        )
+
+        if existe_duplicado:
+            raise ValidationError({
+                'nombre': (
+                    'Ya existe un producto activo '
+                    'con este nombre.'
+                )
+            })
+
 
 class Movimiento(models.Model):
 
@@ -108,7 +135,8 @@ class Movimiento(models.Model):
     )
 
     fecha_movimiento = models.DateTimeField(
-        auto_now_add=True
+        auto_now_add=True,
+        db_index=True
     )
 
     def __str__(self):

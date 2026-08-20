@@ -99,3 +99,13 @@ class MovimientoAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         obj.usuario = request.user
         super().save_model(request, obj, form, change)
+
+    def has_change_permission(self, request, obj=None):
+        # Los movimientos son inmutables: se permite verlos, no editarlos.
+        if obj is not None:
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        # Los movimientos no se pueden eliminar (coherente con el modelo).
+        return False

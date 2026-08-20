@@ -11,21 +11,42 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Cargar las variables de entorno desde backend/.env
+load_dotenv(BASE_DIR / '.env')
+
+
+def get_env(name, default=None, required=False):
+    """Lee una variable de entorno. Si es obligatoria y falta, avisa con un error claro."""
+    value = os.environ.get(name, default)
+    if required and (value is None or value == ''):
+        raise RuntimeError(
+            f'Falta la variable de entorno obligatoria "{name}". '
+            f'Revisa tu archivo backend/.env'
+        )
+    return value
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-z%8d^ucb9@gt01&5szx)+3@m*s2u-c5r*cz9$g-0ddl4jxijd^'
+SECRET_KEY = get_env('DJANGO_SECRET_KEY', required=True)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = get_env('DJANGO_DEBUG', 'False').lower() in ('1', 'true', 'yes', 'on')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in get_env('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    if host.strip()
+]
 
 
 # Application definition
@@ -76,11 +97,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'minimercado_db',
-        'USER': 'postgres',
-        'PASSWORD': 'Sc102007',
-        'HOST': 'localhost',
-        'PORT': '2025',
+        'NAME': get_env('DB_NAME', 'minimercado_db'),
+        'USER': get_env('DB_USER', 'postgres'),
+        'PASSWORD': get_env('DB_PASSWORD', required=True),
+        'HOST': get_env('DB_HOST', 'localhost'),
+        'PORT': get_env('DB_PORT', '5432'),
     }
 }
 
@@ -122,11 +143,13 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 
+# Default primary key field type
+# https://docs.djangoproject.com/en/6.1/ref/settings/#default-auto-field
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

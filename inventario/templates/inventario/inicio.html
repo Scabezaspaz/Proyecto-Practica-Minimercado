@@ -350,13 +350,21 @@
                 <strong>{{ request.user.username }}</strong>
             </small>
 
-            <a
-                href="{% url 'logout' %}"
-                class="cerrar-sesion"
+                       <form
+                method="POST"
+                action="{% url 'logout' %}"
+                style="display: inline;"
             >
-                Cerrar sesión
-            </a>
+                {% csrf_token %}
 
+                <button
+                    type="submit"
+                    class="cerrar-sesion"
+                    style="background: none; cursor: pointer; font-family: inherit;"
+                >
+                    Cerrar sesión
+                </button>
+            </form>
         </div>
 
     </div>
