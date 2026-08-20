@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Inicio - Sistema de Inventario</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+            color: #333;
+        }
+
+        header {
+            background-color: #1f4e3d;
+            color: white;
+            padding: 22px 40px;
+        }
+
+        .header-contenido {
+            max-width: 1200px;
+            margin: auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        header h1 {
+            font-size: 27px;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            font-size: 14px;
+        }
+
+        .usuario-header {
+            text-align: right;
+        }
+
+        .usuario-header small {
+            display: block;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+
+        .cerrar-sesion {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            padding: 7px 12px;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+
+        .cerrar-sesion:hover {
+            background-color: white;
+            color: #1f4e3d;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .bienvenida {
+            background-color: white;
+            padding: 28px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .bienvenida h2 {
+            color: #1f4e3d;
+            margin-bottom: 9px;
+        }
+
+        .bienvenida p {
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .resumen {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .indicador {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #1f4e3d;
+        }
+
+        .indicador.alerta {
+            border-left-color: #c62828;
+        }
+
+        .indicador h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .numero {
+            font-size: 32px;
+            font-weight: bold;
+            color: #1f4e3d;
+        }
+
+        .numero.alerta {
+            color: #c62828;
+        }
+
+        .seccion {
+            background-color: white;
+            padding: 28px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .seccion h2 {
+            color: #1f4e3d;
+            margin-bottom: 20px;
+        }
+
+        .alerta-stock {
+            background-color: #fff5f5;
+            border: 1px solid #f0caca;
+            border-radius: 7px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .alerta-stock:last-child {
+            margin-bottom: 0;
+        }
+
+        .producto-alerta strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .producto-alerta small {
+            color: #777;
+        }
+
+        .stock-valores {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .stock-actual {
+            color: #c62828;
+            font-weight: bold;
+        }
+
+        .stock-minimo {
+            color: #777;
+            font-size: 13px;
+        }
+
+        .sin-alertas {
+            background-color: #f1f8f3;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 7px;
+        }
+
+        .movimiento {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid #eee;
+            gap: 20px;
+        }
+
+        .movimiento:last-child {
+            border-bottom: none;
+        }
+
+        .movimiento-info strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .movimiento-info small {
+            color: #777;
+        }
+
+        .movimiento-derecha {
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .entrada {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+
+        .salida {
+            color: #c62828;
+            font-weight: bold;
+        }
+
+        .opciones {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .tarjeta {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .tarjeta h3 {
+            color: #1f4e3d;
+            margin-bottom: 10px;
+        }
+
+        .tarjeta p {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 18px;
+        }
+
+        .boton {
+            display: inline-block;
+            background-color: #1f4e3d;
+            color: white;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+        }
+
+        .boton:hover {
+            background-color: #16382d;
+        }
+
+        .boton-secundario {
+            background-color: #555;
+        }
+
+        .boton-secundario:hover {
+            background-color: #333;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            color: #777;
+            font-size: 14px;
+        }
+
+        @media (max-width: 850px) {
+
+            .resumen,
+            .opciones {
+                grid-template-columns: 1fr;
+            }
+
+            .header-contenido {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .usuario-header {
+                text-align: left;
+            }
+
+        }
+
+        @media (max-width: 600px) {
+
+            header {
+                padding: 20px;
+            }
+
+            main {
+                margin-top: 25px;
+            }
+
+            .alerta-stock,
+            .movimiento {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .stock-valores,
+            .movimiento-derecha {
+                text-align: left;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <div class="header-contenido">
+
+        <div>
+
+            <h1>Sistema de Inventario</h1>
+
+            <p>Mini Mercado Ecológico</p>
+
+        </div>
+
+
+        <div class="usuario-header">
+
+            <small>
+                Sesión iniciada como:
+                <strong>{{ request.user.username }}</strong>
+            </small>
+
+            <a
+                href="{% url 'logout' %}"
+                class="cerrar-sesion"
+            >
+                Cerrar sesión
+            </a>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<main>
+
+
+    <!-- BIENVENIDA -->
+
+    <section class="bienvenida">
+
+        <h2>
+            Bienvenido al sistema
+        </h2>
+
+        <p>
+            Desde este panel puedes consultar el estado del inventario,
+            revisar las existencias, controlar los productos y consultar
+            los movimientos registrados.
+        </p>
+
+    </section>
+
+
+    <!-- RESUMEN -->
+
+    <section class="resumen">
+
+
+        <div class="indicador">
+
+            <h3>
+                Productos activos
+            </h3>
+
+            <div class="numero">
+                {{ total_productos }}
+            </div>
+
+        </div>
+
+
+        <div
+            class="indicador
+            {% if productos_stock_bajo > 0 %}
+                alerta
+            {% endif %}"
+        >
+
+            <h3>
+                Productos con stock bajo
+            </h3>
+
+            <div
+                class="numero
+                {% if productos_stock_bajo > 0 %}
+                    alerta
+                {% endif %}"
+            >
+                {{ productos_stock_bajo }}
+            </div>
+
+        </div>
+
+
+        <div class="indicador">
+
+            <h3>
+                Movimientos registrados
+            </h3>
+
+            <div class="numero">
+                {{ total_movimientos }}
+            </div>
+
+        </div>
+
+
+    </section>
+
+
+    <!-- ALERTAS DE STOCK -->
+
+    <section class="seccion">
+
+        <h2>
+            Estado del inventario
+        </h2>
+
+
+        {% if productos_stock_bajo_lista %}
+
+
+            {% for producto in productos_stock_bajo_lista %}
+
+
+                <div class="alerta-stock">
+
+
+                    <div class="producto-alerta">
+
+                        <strong>
+                            {{ producto.nombre }}
+                        </strong>
+
+                        <small>
+                            Unidad de medida:
+                            {{ producto.unidad_medida }}
+                        </small>
+
+                    </div>
+
+
+                    <div class="stock-valores">
+
+                        <div class="stock-actual">
+
+                            Stock actual:
+                            {{ producto.stock_actual }}
+
+                        </div>
+
+                        <div class="stock-minimo">
+
+                            Stock mínimo:
+                            {{ producto.stock_minimo }}
+
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+
+            {% endfor %}
+
+
+        {% else %}
+
+
+            <div class="sin-alertas">
+
+                ✓ No hay productos con stock bajo.
+
+            </div>
+
+
+        {% endif %}
+
+
+    </section>
+
+
+    <!-- ÚLTIMOS MOVIMIENTOS -->
+
+    <section class="seccion">
+
+        <h2>
+            Últimos movimientos
+        </h2>
+
+
+        {% if ultimos_movimientos %}
+
+
+            {% for movimiento in ultimos_movimientos %}
+
+
+                <div class="movimiento">
+
+
+                    <div class="movimiento-info">
+
+                        <strong>
+                            {{ movimiento.producto.nombre }}
+                        </strong>
+
+                        <small>
+
+                            {{ movimiento.usuario.username }}
+
+                            ·
+
+                            {{ movimiento.fecha_movimiento|date:"d/m/Y H:i" }}
+
+                        </small>
+
+                    </div>
+
+
+                    <div class="movimiento-derecha">
+
+
+                        {% if movimiento.tipo_movimiento == 'ENTRADA' %}
+
+                            <span class="entrada">
+
+                                +{{ movimiento.cantidad }}
+
+                            </span>
+
+                        {% else %}
+
+                            <span class="salida">
+
+                                -{{ movimiento.cantidad }}
+
+                            </span>
+
+                        {% endif %}
+
+
+                        {{ movimiento.producto.unidad_medida }}
+
+
+                    </div>
+
+
+                </div>
+
+
+            {% endfor %}
+
+
+        {% else %}
+
+
+            <p>
+                No hay movimientos registrados.
+            </p>
+
+
+        {% endif %}
+
+
+    </section>
+
+
+    <!-- ACCESOS RÁPIDOS -->
+
+    <section class="opciones">
+
+
+        <div class="tarjeta">
+
+            <h3>
+                Productos
+            </h3>
+
+            <p>
+                Consulta, registra y administra los productos
+                disponibles en el inventario.
+            </p>
+
+            <a
+                href="{% url 'productos' %}"
+                class="boton"
+            >
+                Ver productos
+            </a>
+
+        </div>
+
+
+        <div class="tarjeta">
+
+            <h3>
+                Movimientos
+            </h3>
+
+            <p>
+                Consulta el historial de entradas y salidas
+                registradas en el sistema.
+            </p>
+
+            <a
+                href="{% url 'movimientos' %}"
+                class="boton"
+            >
+                Ver movimientos
+            </a>
+
+        </div>
+
+
+        <div class="tarjeta">
+
+            <h3>
+                Administración
+            </h3>
+
+            <p>
+                Accede al panel administrativo para gestionar
+                la información del sistema.
+            </p>
+
+            <a
+                href="/admin/"
+                class="boton boton-secundario"
+            >
+                Ir al administrador
+            </a>
+
+        </div>
+
+
+    </section>
+
+
+</main>
+
+
+<footer>
+
+    Sistema de Inventario · Mini Mercado Ecológico
+
+</footer>
+
+
+</body>
+
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Iniciar sesión · Sistema de Inventario</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f4f6f8;
+            color: #333;
+        }
+
+        .contenedor {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+
+        .login {
+            background-color: white;
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.10);
+        }
+
+        .encabezado {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .encabezado h1 {
+            color: #1f4e3d;
+            margin-bottom: 8px;
+            font-size: 28px;
+        }
+
+        .encabezado p {
+            color: #777;
+            font-size: 14px;
+        }
+
+        .campo {
+            margin-bottom: 20px;
+        }
+
+        .campo label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .campo input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        .campo input:focus {
+            outline: none;
+            border-color: #1f4e3d;
+        }
+
+        .error {
+            background-color: #fdecea;
+            color: #b3261e;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .opciones {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        .recordarme {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .recordarme input {
+            width: auto;
+        }
+
+        .boton {
+            width: 100%;
+            border: none;
+            background-color: #1f4e3d;
+            color: white;
+            padding: 13px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .boton:hover {
+            background-color: #16382d;
+        }
+
+        .pie {
+            text-align: center;
+            margin-top: 25px;
+            color: #777;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+    <div class="login">
+
+        <div class="encabezado">
+            <h1>Sistema de Inventario</h1>
+            <p>Mini Mercado Ecológico</p>
+        </div>
+
+        {% if error %}
+            <div class="error">
+                {{ error }}
+            </div>
+        {% endif %}
+
+        <form method="POST">
+
+            {% csrf_token %}
+
+            <div class="campo">
+                <label for="usuario">
+                    Usuario
+                </label>
+
+                <input
+                    type="text"
+                    id="usuario"
+                    name="usuario"
+                    placeholder="Ingresa tu usuario"
+                    required
+                >
+            </div>
+
+            <div class="campo">
+                <label for="contraseña">
+                    Contraseña
+                </label>
+
+                <input
+                    type="password"
+                    id="contraseña"
+                    name="contraseña"
+                    placeholder="Ingresa tu contraseña"
+                    required
+                >
+            </div>
+
+            <div class="opciones">
+
+                <label class="recordarme">
+                    <input type="checkbox" name="recordarme">
+                    Recordarme
+                </label>
+
+            </div>
+
+            <button type="submit" class="boton">
+                Iniciar sesión
+            </button>
+
+        </form>
+
+        <div class="pie">
+            Sistema de Inventario · Mini Mercado Ecológico
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>
