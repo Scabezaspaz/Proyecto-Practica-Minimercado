@@ -1,9 +1,7 @@
 <!DOCTYPE html>
-
 <html lang="es">
 
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -42,6 +40,41 @@
             max-width: 1100px;
             margin: 40px auto;
             padding: 0 20px;
+        }
+
+        .mensajes {
+            margin-bottom: 25px;
+        }
+
+        .mensaje {
+            padding: 14px 18px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .mensaje.success {
+            background-color: #e7f5ea;
+            color: #1b5e20;
+            border: 1px solid #b7dfc0;
+        }
+
+        .mensaje.error {
+            background-color: #fdecea;
+            color: #b3261e;
+            border: 1px solid #f5c6c2;
+        }
+
+        .mensaje.warning {
+            background-color: #fff8e1;
+            color: #8a6d00;
+            border: 1px solid #f0e0a0;
+        }
+
+        .mensaje.info {
+            background-color: #e8f1fb;
+            color: #1a5091;
+            border: 1px solid #c3ddf5;
         }
 
         .encabezado {
@@ -216,6 +249,23 @@
 
 <main>
 
+    {% if messages %}
+
+        <div class="mensajes">
+
+            {% for mensaje in messages %}
+
+                <div class="mensaje {{ mensaje.tags }}">
+                    {{ mensaje }}
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+
     <div class="encabezado">
 
         <h2>Productos</h2>
@@ -276,13 +326,8 @@
 
 
                     <p>
-
-                        <strong>
-                            Unidad:
-                        </strong>
-
+                        <strong>Unidad:</strong>
                         {{ producto.unidad_medida }}
-
                     </p>
 
 
@@ -305,10 +350,9 @@
                         {{ producto.unidad_medida }}
 
 
-                        {% if producto.id in productos_stock_bajo_ids %}
+                        {% if producto.stock_actual <= producto.stock_minimo %}
 
-                            <br>
-                            <br>
+                            <br><br>
 
                             <span class="stock-bajo">
                                 ⚠ Stock bajo

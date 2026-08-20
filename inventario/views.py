@@ -1,5 +1,6 @@
 from urllib.parse import urlencode
 
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
@@ -154,6 +155,11 @@ def nuevo_producto(request):
 
                 formulario.save()
 
+                messages.success(
+                    request,
+                    'Producto creado correctamente.'
+                )
+
                 return redirect(
                     'productos'
                 )
@@ -201,6 +207,11 @@ def editar_producto(request, producto_id):
             try:
 
                 formulario.save()
+
+                messages.success(
+                    request,
+                    'Producto actualizado correctamente.'
+                )
 
                 return redirect(
                     'productos'
@@ -263,6 +274,20 @@ def registrar_movimiento(
                 movimiento.tipo_movimiento = tipo_movimiento
 
                 movimiento.save()
+
+                if tipo_movimiento == 'ENTRADA':
+
+                    messages.success(
+                        request,
+                        'Entrada registrada correctamente.'
+                    )
+
+                else:
+
+                    messages.success(
+                        request,
+                        'Salida registrada correctamente.'
+                    )
 
                 return redirect(
                     'productos'
