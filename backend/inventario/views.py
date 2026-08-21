@@ -1,8 +1,13 @@
+from urllib.parse import urlencode
+
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator
 from django.db import models
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from .forms import (
     MovimientoForm,
@@ -113,19 +118,9 @@ def productos(request):
         'nombre'
     )
 
-    productos_stock_bajo_ids = set(
-        productos.filter(
-            stock_actual__lte=models.F('stock_minimo')
-        ).values_list(
-            'id',
-            flat=True
-        )
-    )
-
     contexto = {
         'productos': productos,
         'consulta': consulta,
-        'productos_stock_bajo_ids': productos_stock_bajo_ids,
     }
 
     return render(
@@ -149,6 +144,11 @@ def nuevo_producto(request):
             try:
 
                 formulario.save()
+
+                messages.success(
+                    request,
+                    'Producto creado correctamente.'
+                )
 
                 return redirect(
                     'productos'
@@ -197,6 +197,11 @@ def editar_producto(request, producto_id):
             try:
 
                 formulario.save()
+
+                messages.success(
+                    request,
+                    'Producto actualizado correctamente.'
+                )
 
                 return redirect(
                     'productos'
@@ -259,6 +264,20 @@ def registrar_movimiento(
                 movimiento.tipo_movimiento = tipo_movimiento
 
                 movimiento.save()
+
+                if tipo_movimiento == 'ENTRADA':
+
+                    messages.success(
+                        request,
+                        'Entrada registrada correctamente.'
+                    )
+
+                else:
+
+                    messages.success(
+                        request,
+                        'Salida registrada correctamente.'
+                    )
 
                 return redirect(
                     'productos'
@@ -327,7 +346,7 @@ def movimientos(request):
         ''
     ).strip()
 
-    movimientos = (
+    lista_movimientos = (
         Movimiento.objects
         .select_related(
             'producto',
@@ -337,7 +356,7 @@ def movimientos(request):
 
     if producto_busqueda:
 
-        movimientos = movimientos.filter(
+        lista_movimientos = lista_movimientos.filter(
             producto__nombre__icontains=producto_busqueda
         )
 
@@ -346,19 +365,34 @@ def movimientos(request):
         'SALIDA'
     ]:
 
-        movimientos = movimientos.filter(
+        lista_movimientos = lista_movimientos.filter(
             tipo_movimiento=tipo
         )
 
     if usuario_busqueda:
 
-        movimientos = movimientos.filter(
+        lista_movimientos = lista_movimientos.filter(
             usuario__username__icontains=usuario_busqueda
         )
 
-    movimientos = movimientos.order_by(
+    lista_movimientos = lista_movimientos.order_by(
         '-fecha_movimiento'
     )
+
+    paginador = Paginator(
+        lista_movimientos,
+        20
+    )
+
+    numero_pagina = request.GET.get('page')
+
+    movimientos = paginador.get_page(numero_pagina)
+
+    parametros = urlencode({
+        'producto': producto_busqueda,
+        'tipo': tipo,
+        'usuario': usuario_busqueda,
+    })
 
     usuarios = (
         Movimiento.objects
@@ -378,6 +412,7 @@ def movimientos(request):
         'tipo': tipo,
         'usuario_busqueda': usuario_busqueda,
         'usuarios': usuarios,
+        'parametros': parametros,
     }
 
     return render(
@@ -439,6 +474,8 @@ def iniciar_sesion(request):
     )
 
 
+@login_required(login_url='login')
+@require_POST
 def cerrar_sesion(request):
 
     logout(request)

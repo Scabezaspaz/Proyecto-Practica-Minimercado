@@ -198,6 +198,40 @@
             color: #777;
         }
 
+        .paginacion {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .pagina-enlace {
+            display: inline-block;
+            background-color: #1f4e3d;
+            color: white;
+            text-decoration: none;
+            padding: 9px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .pagina-enlace:hover {
+            background-color: #16382d;
+        }
+
+        .pagina-enlace.deshabilitado {
+            background-color: #c8d2ce;
+            color: #eef2f0;
+            pointer-events: none;
+        }
+
+        .pagina-info {
+            font-size: 14px;
+            color: #555;
+        }
+
         footer {
             text-align: center;
             padding: 25px;
@@ -510,6 +544,59 @@
 
 
     </section>
+
+
+    <!-- PAGINACIÓN -->
+
+    {% if movimientos.has_other_pages %}
+
+        <div class="paginacion">
+
+
+            {% if movimientos.has_previous %}
+
+                <a
+                    href="?page={{ movimientos.previous_page_number }}&{{ parametros }}"
+                    class="pagina-enlace"
+                >
+                    Anterior
+                </a>
+
+            {% else %}
+
+                <span class="pagina-enlace deshabilitado">
+                    Anterior
+                </span>
+
+            {% endif %}
+
+
+            <span class="pagina-info">
+                Página {{ movimientos.number }} de {{ movimientos.paginator.num_pages }}
+            </span>
+
+
+            {% if movimientos.has_next %}
+
+                <a
+                    href="?page={{ movimientos.next_page_number }}&{{ parametros }}"
+                    class="pagina-enlace"
+                >
+                    Siguiente
+                </a>
+
+            {% else %}
+
+                <span class="pagina-enlace deshabilitado">
+                    Siguiente
+                </span>
+
+            {% endif %}
+
+
+        </div>
+
+    {% endif %}
 
 
 </main>
