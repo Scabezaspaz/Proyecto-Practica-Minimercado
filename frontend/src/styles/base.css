@@ -94,7 +94,7 @@ ul{margin:0;padding:0;list-style:none}
 .btn:disabled,.btn[disabled]{opacity:.55;cursor:not-allowed;pointer-events:none}
 .btn.loading{pointer-events:none;opacity:.85}
 .btn.loading::after{content:"";width:14px;height:14px;margin-left:2px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
-.btn-secondary.loading::after,.btn-ghost.loading::after{border-color:rgba(4,40,80,.22);border-top-color:var(--fg)}
+.btn-secondary.loading::after,.btn-ghost.loading::after{border-color:rgba(38,49,27,.22);border-top-color:var(--fg)}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 .icon-btn{
@@ -211,7 +211,7 @@ textarea.input{min-height:92px;resize:vertical;line-height:1.5}
 .table th{text-align:left;padding:11px 14px;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.02em;background:var(--bg);border-bottom:1px solid var(--border);white-space:nowrap}
 .table td{padding:13px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
 .table tbody tr{transition:background .12s}
-.table tbody tr:hover{background:color-mix(in srgb, #042850 3%, #FFFFFF)}
+.table tbody tr:hover{background:color-mix(in srgb, #26311B 3%, #FFFFFF)}
 .table tbody tr:last-child td{border-bottom:0}
 .table th.num{text-align:right}
 .table td.num{text-align:right;font-variant-numeric:tabular-nums}
@@ -239,7 +239,7 @@ textarea.input{min-height:92px;resize:vertical;line-height:1.5}
 .empty .btn{margin-top:14px}
 
 /* ---------- Skeleton ---------- */
-.skel{border-radius:6px;background:linear-gradient(90deg,var(--bg) 25%,color-mix(in srgb, #042850 6%, #FFFFFF) 50%,var(--bg) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite linear}
+.skel{border-radius:6px;background:linear-gradient(90deg,var(--bg) 25%,color-mix(in srgb, #26311B 6%, #FFFFFF) 50%,var(--bg) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite linear}
 @keyframes shimmer{to{background-position:-200% 0}}
 .skel-block{height:44px}
 .skel-sm{height:14px;width:60%}
@@ -281,7 +281,7 @@ textarea.input{min-height:92px;resize:vertical;line-height:1.5}
 body.modal-open{overflow:hidden}
 
 /* ---------- Sidebar ---------- */
-.backdrop{position:fixed;inset:0;background:rgba(4,40,80,.4);opacity:0;pointer-events:none;transition:opacity .2s;z-index:70}
+.backdrop{position:fixed;inset:0;background:rgba(38,49,27,.4);opacity:0;pointer-events:none;transition:opacity .2s;z-index:70}
 .backdrop.open{opacity:1;pointer-events:auto}
 .sidebar{
   position:fixed;inset:0 auto 0 0;width:var(--sidebar-w);background:var(--surface);border-right:1px solid var(--border);
