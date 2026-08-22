@@ -7,9 +7,9 @@ const api = axios.create({
   baseURL: API_URL,
 })
 
-// Antes de cada petición, agrega el token si existe
+// Antes de cada petición, agrega el token si existe (localStorage o sessionStorage)
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('access')
+  const token = localStorage.getItem('access') || sessionStorage.getItem('access')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -23,6 +23,8 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       localStorage.removeItem('access')
       localStorage.removeItem('refresh')
+      sessionStorage.removeItem('access')
+      sessionStorage.removeItem('refresh')
       if (window.location.pathname !== '/login') {
         window.location.href = '/login'
       }

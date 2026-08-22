@@ -1,23 +1,41 @@
 import api from './client'
 
-// Inicia sesión contra la API y guarda los tokens
-export async function login(username: string, password: string) {
-  const response = await api.post('/auth/login/', {
-    username,
-    password,
-  })
+const ACCESS = 'access'
+const REFRESH = 'refresh'
+const USERNAME = 'username'
 
-  localStorage.setItem('access', response.data.access)
-  localStorage.setItem('refresh', response.data.refresh)
+// Inicia sesión contra la API y guarda los tokens + el usuario.
+//   recordar = true  -> localStorage   (persiste al cerrar el navegador)
+//   recordar = false -> sessionStorage (se borra al cerrar el navegador)
+export async function login(username: string, password: string, recordar = true) {
+  const response = await api.post('/auth/login/', { username, password })
+
+  logout() // limpia cualquier sesión previa en ambos almacenamientos
+
+  const store = recordar ? localStorage : sessionStorage
+  store.setItem(ACCESS, response.data.access)
+  store.setItem(REFRESH, response.data.refresh)
+  store.setItem(USERNAME, username)
 }
 
-// Cierra sesión: borra los tokens
+// Cierra sesión: borra todo de ambos almacenamientos
 export function logout() {
-  localStorage.removeItem('access')
-  localStorage.removeItem('refresh')
+  localStorage.removeItem(ACCESS)
+  localStorage.removeItem(REFRESH)
+  localStorage.removeItem(USERNAME)
+  sessionStorage.removeItem(ACCESS)
+  sessionStorage.removeItem(REFRESH)
+  sessionStorage.removeItem(USERNAME)
 }
 
-// Indica si el usuario tiene sesión activa
+export function getAccessToken(): string | null {
+  return localStorage.getItem(ACCESS) || sessionStorage.getItem(ACCESS)
+}
+
+export function getUsername(): string {
+  return localStorage.getItem(USERNAME) || sessionStorage.getItem(USERNAME) || 'Usuario'
+}
+
 export function isAuthenticated(): boolean {
-  return !!localStorage.getItem('access')
+  return !!getAccessToken()
 }
