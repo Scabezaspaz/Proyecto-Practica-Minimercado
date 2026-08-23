@@ -8,6 +8,7 @@ const ITEMS: NavItem[] = [
   { to: '/', icon: 'dashboard', label: 'Panel de control', end: true },
   { to: '/productos', icon: 'box', label: 'Productos' },
   { to: '/movimientos', icon: 'clock', label: 'Movimientos' },
+  { to: '/reportes', icon: 'calendar', label: 'Reportes' },
 ]
 
 type SidebarProps = {

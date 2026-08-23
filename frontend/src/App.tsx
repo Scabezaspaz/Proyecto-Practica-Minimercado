@@ -5,14 +5,13 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Productos from './pages/Productos'
 import Movimientos from './pages/Movimientos'
+import Reportes from './pages/Reportes'
 
 function App() {
   return (
     <Routes>
-      {/* Pública */}
       <Route path="/login" element={<Login />} />
 
-      {/* Protegidas: comparten el esqueleto (sidebar + topbar) */}
       <Route
         element={
           <ProtectedRoute>
@@ -23,9 +22,9 @@ function App() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/productos" element={<Productos />} />
         <Route path="/movimientos" element={<Movimientos />} />
+        <Route path="/reportes" element={<Reportes />} />
       </Route>
 
-      {/* Cualquier ruta desconocida vuelve al inicio */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

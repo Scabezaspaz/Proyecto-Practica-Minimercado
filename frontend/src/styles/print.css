@@ -1,0 +1,38 @@
+/* ===== Estilos del reporte (pantalla) ===== */
+.report-doc { max-width: 900px; margin: 0 auto; }
+
+.report-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px; border-bottom: 2px solid var(--fg);
+  padding-bottom: 16px; margin-bottom: 8px; flex-wrap: wrap;
+}
+.report-brand { display: flex; align-items: center; gap: 12px; }
+.report-brand .brand-mark { width: 46px; height: 46px; }
+.report-title h1 { font-size: 20px; font-weight: 700; letter-spacing: -.02em; line-height: 1.15; }
+.report-title p { font-size: 13px; color: var(--muted); margin-top: 3px; }
+.report-meta { text-align: right; font-size: 12px; color: var(--muted); line-height: 1.7; }
+.report-meta b { color: var(--fg); font-weight: 600; }
+
+.report-section-title { font-size: 15px; font-weight: 700; margin: 26px 0 10px; letter-spacing: -.01em; }
+.report-totals { display: flex; gap: 22px; flex-wrap: wrap; margin: 4px 0 12px; font-size: 13px; color: var(--muted); }
+.report-totals b { color: var(--fg); font-weight: 700; }
+.report-note { font-size: 12px; color: var(--subtle); margin-bottom: 10px; }
+
+
+/* ===== Impresión / Guardar como PDF ===== */
+@media print {
+  /* Forzar que se impriman los colores de fondo (badges, etc.) */
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+  .sidebar, .topbar, .backdrop, .no-print { display: none !important; }
+  .main { margin-left: 0 !important; }
+  .content { padding: 0 !important; max-width: 100% !important; }
+  body { background: #fff !important; }
+
+  .card { box-shadow: none !important; border: 1px solid #ccc !important; }
+  table { page-break-inside: auto; }
+  tr { page-break-inside: avoid; }
+  thead { display: table-header-group; }
+
+  @page { margin: 1.4cm; }
+}

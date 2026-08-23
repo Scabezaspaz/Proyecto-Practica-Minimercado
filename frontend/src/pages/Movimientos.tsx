@@ -8,7 +8,7 @@ function fmtFechaHora(iso: string): string {
   const d = new Date(iso)
   if (isNaN(d.getTime())) return iso
   const fecha = d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
-  const hora = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+  const hora = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: true })
   return `${fecha} · ${hora}`
 }
 

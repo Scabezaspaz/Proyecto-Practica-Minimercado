@@ -3,11 +3,11 @@ import { Outlet, useLocation } from 'react-router-dom'
 import Sidebar from './Sidebar'
 import Topbar from './Topbar'
 
-// Título de la barra superior según la ruta
 const TITLES: Record<string, string> = {
   '/': 'Panel de control',
   '/productos': 'Productos',
   '/movimientos': 'Movimientos',
+  '/reportes': 'Reportes',
 }
 
 export default function AppLayout() {
