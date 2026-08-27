@@ -134,6 +134,22 @@ class Movimiento(models.Model):
         blank=True
     )
 
+    # Datos de la factura (solo aplican a ENTRADA; opcionales).
+    numero_factura = models.CharField(
+        max_length=50,
+        blank=True
+    )
+
+    fecha_pago_factura = models.DateField(
+        null=True,
+        blank=True
+    )
+
+    banco_pago = models.CharField(
+        max_length=80,
+        blank=True
+    )
+
     fecha_movimiento = models.DateTimeField(
         auto_now_add=True,
         db_index=True
@@ -144,6 +160,12 @@ class Movimiento(models.Model):
 
     def clean(self):
         super().clean()
+
+        # Los datos de factura solo tienen sentido en las entradas.
+        if self.tipo_movimiento != 'ENTRADA':
+            self.numero_factura = ''
+            self.fecha_pago_factura = None
+            self.banco_pago = ''
 
         if not self.producto_id:
             return

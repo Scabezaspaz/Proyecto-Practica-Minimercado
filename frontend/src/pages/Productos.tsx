@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import ProductoModal from '../components/ProductoModal'
 import { getProductos, deleteProducto, apiErrorMessage } from '../api/productos'
@@ -12,6 +13,7 @@ export default function Productos() {
   const [busqueda, setBusqueda] = useState('')
   const [modalAbierto, setModalAbierto] = useState(false)
   const [editando, setEditando] = useState<Producto | null>(null)
+  const navigate = useNavigate()
 
   async function cargar(q = '') {
     try {
@@ -152,6 +154,9 @@ export default function Productos() {
                       <td>{filaEstado(p)}</td>
                       <td>
                         <div className="actions">
+                          <button className="icon-btn" title="Ver detalle" onClick={() => navigate(`/productos/${p.id}`)}>
+                            <Icon name="eye" />
+                          </button>
                           <button className="icon-btn" title="Editar" onClick={() => abrirEditar(p)}>
                             <Icon name="pencil" />
                           </button>

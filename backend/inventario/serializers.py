@@ -95,6 +95,9 @@ class MovimientoSerializer(serializers.ModelSerializer):
             'tipo_movimiento_display',
             'cantidad',
             'observacion',
+            'numero_factura',
+            'fecha_pago_factura',
+            'banco_pago',
             'fecha_movimiento',
         ]
         read_only_fields = [

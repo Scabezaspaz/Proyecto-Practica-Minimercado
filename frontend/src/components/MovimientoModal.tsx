@@ -7,16 +7,35 @@ import { toast } from '../lib/toast'
 
 type Props = {
   tipoInicial: 'ENTRADA' | 'SALIDA'
+  productoIdInicial?: string
   onClose: () => void
   onSaved: () => void
 }
 
-export default function MovimientoModal({ tipoInicial, onClose, onSaved }: Props) {
+// Bancos frecuentes (solo sugerencias; el campo admite cualquier texto).
+const BANCOS = [
+  'Bancolombia',
+  'Davivienda',
+  'BBVA',
+  'Banco de Bogotá',
+  'Banco de Occidente',
+  'Banco Agrario',
+  'Scotiabank Colpatria',
+  'Nequi',
+  'Daviplata',
+  'Efectivo',
+]
+
+export default function MovimientoModal({ tipoInicial, productoIdInicial, onClose, onSaved }: Props) {
   const [tipo, setTipo] = useState<'ENTRADA' | 'SALIDA'>(tipoInicial)
   const [productos, setProductos] = useState<Producto[]>([])
-  const [productoId, setProductoId] = useState('')
+  const [productoId, setProductoId] = useState(productoIdInicial ?? '')
   const [cantidad, setCantidad] = useState('')
   const [observacion, setObservacion] = useState('')
+  // Datos de factura (solo entradas).
+  const [numeroFactura, setNumeroFactura] = useState('')
+  const [fechaPago, setFechaPago] = useState('')
+  const [banco, setBanco] = useState('')
   const [saving, setSaving] = useState(false)
   const [errorCantidad, setErrorCantidad] = useState('')
 
@@ -25,13 +44,19 @@ export default function MovimientoModal({ tipoInicial, onClose, onSaved }: Props
     getProductos()
       .then((data) => {
         setProductos(data)
-        if (data.length > 0) setProductoId(data[0].id)
+        if (productoIdInicial && data.some((p) => p.id === productoIdInicial)) {
+          setProductoId(productoIdInicial)
+        } else if (data.length > 0) {
+          setProductoId(data[0].id)
+        }
       })
       .catch(() => toast('No se pudieron cargar los productos.', 'error'))
     return () => document.body.classList.remove('modal-open')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const prod = productos.find((p) => p.id === productoId)
+  const productoBloqueado = Boolean(productoIdInicial)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -55,6 +80,14 @@ export default function MovimientoModal({ tipoInicial, onClose, onSaved }: Props
         tipo_movimiento: tipo,
         cantidad,
         observacion: observacion.trim(),
+        // Los datos de factura solo se envían en las entradas.
+        ...(tipo === 'ENTRADA'
+          ? {
+              numero_factura: numeroFactura.trim(),
+              fecha_pago_factura: fechaPago || null,
+              banco_pago: banco.trim(),
+            }
+          : {}),
       })
       toast(tipo === 'ENTRADA' ? 'Entrada registrada correctamente.' : 'Salida registrada correctamente.', 'success')
       onSaved()
@@ -122,6 +155,7 @@ export default function MovimientoModal({ tipoInicial, onClose, onSaved }: Props
                     id="m-prod"
                     value={productoId}
                     onChange={(e) => setProductoId(e.target.value)}
+                    disabled={productoBloqueado}
                   >
                     {productos.map((p) => (
                       <option key={p.id} value={p.id}>
@@ -129,6 +163,9 @@ export default function MovimientoModal({ tipoInicial, onClose, onSaved }: Props
                       </option>
                     ))}
                   </select>
+                  {productoBloqueado && (
+                    <span className="hint">Registrando movimiento para este producto.</span>
+                  )}
                 </div>
 
                 <div className={`field ${errorCantidad ? 'invalid' : ''}`}>
@@ -156,6 +193,55 @@ export default function MovimientoModal({ tipoInicial, onClose, onSaved }: Props
                     <span className="err-text">{errorCantidad}</span>
                   </span>
                 </div>
+
+                {/* Datos de la factura: solo para entradas y opcionales */}
+                {tipo === 'ENTRADA' && (
+                  <div className="field">
+                    <label>
+                      Datos de la factura <span className="hint">(opcional)</span>
+                    </label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                      <div className="field" style={{ margin: 0 }}>
+                        <label htmlFor="m-fact" className="hint">N° de factura</label>
+                        <input
+                          className="input"
+                          id="m-fact"
+                          type="text"
+                          value={numeroFactura}
+                          onChange={(e) => setNumeroFactura(e.target.value)}
+                          placeholder="Ej: FAC-00123"
+                        />
+                      </div>
+                      <div className="field" style={{ margin: 0 }}>
+                        <label htmlFor="m-fpago" className="hint">Fecha de pago</label>
+                        <input
+                          className="input"
+                          id="m-fpago"
+                          type="date"
+                          value={fechaPago}
+                          onChange={(e) => setFechaPago(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="field" style={{ margin: '10px 0 0' }}>
+                      <label htmlFor="m-banco" className="hint">Banco donde se pagó</label>
+                      <input
+                        className="input"
+                        id="m-banco"
+                        type="text"
+                        list="bancos-lista"
+                        value={banco}
+                        onChange={(e) => setBanco(e.target.value)}
+                        placeholder="Ej: Bancolombia"
+                      />
+                      <datalist id="bancos-lista">
+                        {BANCOS.map((b) => (
+                          <option key={b} value={b} />
+                        ))}
+                      </datalist>
+                    </div>
+                  </div>
+                )}
 
                 <div className="field">
                   <label htmlFor="m-obs">

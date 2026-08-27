@@ -53,8 +53,13 @@ class MovimientoViewSet(mixins.ListModelMixin,
         )
 
         producto = self.request.query_params.get('producto', '').strip()
+        producto_id = self.request.query_params.get('producto_id', '').strip()
         tipo = self.request.query_params.get('tipo', '').strip()
         usuario = self.request.query_params.get('usuario', '').strip()
+
+        # Filtro exacto por id de producto (para el detalle de un producto).
+        if producto_id:
+            queryset = queryset.filter(producto_id=producto_id)
 
         if producto:
             queryset = queryset.filter(

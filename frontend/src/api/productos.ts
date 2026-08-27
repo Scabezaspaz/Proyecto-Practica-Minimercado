@@ -14,6 +14,11 @@ export async function getProductos(q = ''): Promise<Producto[]> {
   return res.data
 }
 
+export async function getProducto(id: string): Promise<Producto> {
+  const res = await api.get<Producto>(`/productos/${id}/`)
+  return res.data
+}
+
 export async function createProducto(data: ProductoInput): Promise<Producto> {
   const res = await api.post<Producto>('/productos/', data)
   return res.data

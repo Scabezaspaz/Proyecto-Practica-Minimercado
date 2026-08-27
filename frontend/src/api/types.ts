@@ -23,6 +23,9 @@ export interface Movimiento {
   tipo_movimiento_display: string
   cantidad: number
   observacion: string
+  numero_factura: string
+  fecha_pago_factura: string | null
+  banco_pago: string
   fecha_movimiento: string
 }
 
