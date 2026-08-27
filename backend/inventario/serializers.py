@@ -98,6 +98,7 @@ class MovimientoSerializer(serializers.ModelSerializer):
             'numero_factura',
             'fecha_pago_factura',
             'banco_pago',
+            'precio_factura',
             'fecha_movimiento',
         ]
         read_only_fields = [

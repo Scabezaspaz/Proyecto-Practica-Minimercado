@@ -17,6 +17,7 @@ export interface MovimientoInput {
   numero_factura?: string
   fecha_pago_factura?: string | null
   banco_pago?: string
+  precio_factura?: string | null
 }
 
 export async function getMovimientos(filtros: MovimientoFiltros = {}): Promise<Movimiento[]> {

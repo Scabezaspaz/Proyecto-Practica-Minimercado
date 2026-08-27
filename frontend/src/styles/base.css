@@ -230,6 +230,17 @@ textarea.input{min-height:92px;resize:vertical;line-height:1.5}
 .pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-top:1px solid var(--border);font-size:13px;color:var(--muted);flex-wrap:wrap}
 .pagination .pg-btns{display:flex;gap:8px}
 
+/* ---------- Desplegable propio (abre siempre hacia abajo) ---------- */
+.sdown{position:relative}
+.sdown-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-align:left;font:inherit;cursor:pointer}
+.sdown-btn .sdown-ph{color:var(--muted)}
+.sdown-btn svg{width:16px;height:16px;color:var(--muted);flex:none;transition:transform .15s}
+.sdown.open .sdown-btn svg{transform:rotate(180deg)}
+.sdown-menu{position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-2);z-index:210;max-height:220px;overflow-y:auto;padding:4px;margin:0;list-style:none}
+.sdown-item{padding:9px 12px;border-radius:8px;font-size:14px;cursor:pointer;transition:background .12s}
+.sdown-item:hover{background:var(--bg)}
+.sdown-item.sel{background:var(--bg);font-weight:600}
+
 /* ---------- Estado vacío ---------- */
 .empty{padding:56px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px}
 .empty-icon{width:54px;height:54px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--muted);margin-bottom:8px}

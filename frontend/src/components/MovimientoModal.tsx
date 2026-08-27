@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import Icon from './Icon'
+import SelectMenu from './SelectMenu'
 import type { Producto } from '../api/types'
 import { getProductos, apiErrorMessage } from '../api/productos'
 import { createMovimiento } from '../api/movimientos'
@@ -36,6 +37,7 @@ export default function MovimientoModal({ tipoInicial, productoIdInicial, onClos
   const [numeroFactura, setNumeroFactura] = useState('')
   const [fechaPago, setFechaPago] = useState('')
   const [banco, setBanco] = useState('')
+  const [precio, setPrecio] = useState('')
   const [saving, setSaving] = useState(false)
   const [errorCantidad, setErrorCantidad] = useState('')
 
@@ -86,6 +88,7 @@ export default function MovimientoModal({ tipoInicial, productoIdInicial, onClos
               numero_factura: numeroFactura.trim(),
               fecha_pago_factura: fechaPago || null,
               banco_pago: banco.trim(),
+              precio_factura: precio ? precio : null,
             }
           : {}),
       })
@@ -223,19 +226,30 @@ export default function MovimientoModal({ tipoInicial, productoIdInicial, onClos
                         />
                       </div>
                     </div>
-                    <div className="field" style={{ margin: '10px 0 0' }}>
-                      <label htmlFor="m-banco" className="hint">Banco donde se pagó</label>
-                      <select
-                        className="input"
-                        id="m-banco"
-                        value={banco}
-                        onChange={(e) => setBanco(e.target.value)}
-                      >
-                        <option value="">— Selecciona un banco —</option>
-                        {BANCOS.map((b) => (
-                          <option key={b} value={b}>{b}</option>
-                        ))}
-                      </select>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
+                      <div className="field" style={{ margin: 0 }}>
+                        <label htmlFor="m-precio" className="hint">Precio (COP)</label>
+                        <input
+                          className="input"
+                          id="m-precio"
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={precio}
+                          onChange={(e) => setPrecio(e.target.value)}
+                          placeholder="0.00"
+                        />
+                      </div>
+                      <div className="field" style={{ margin: 0 }}>
+                        <label htmlFor="m-banco" className="hint">Banco donde se pagó</label>
+                        <SelectMenu
+                          id="m-banco"
+                          value={banco}
+                          options={BANCOS}
+                          placeholder="— Selecciona un banco —"
+                          onChange={setBanco}
+                        />
+                      </div>
                     </div>
                   </div>
                 )}

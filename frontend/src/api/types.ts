@@ -26,6 +26,7 @@ export interface Movimiento {
   numero_factura: string
   fecha_pago_factura: string | null
   banco_pago: string
+  precio_factura: string | null
   fecha_movimiento: string
 }
 

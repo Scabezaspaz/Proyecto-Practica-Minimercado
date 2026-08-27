@@ -23,6 +23,13 @@ function fmtFecha(iso: string | null): string {
   return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
+function fmtPrecio(v: string | null): string {
+  if (v === null || v === '') return ''
+  const n = Number(v)
+  if (isNaN(n)) return ''
+  return n.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 2 })
+}
+
 function estadoProducto(p: Producto) {
   const actual = Number(p.stock_actual) || 0
   if (actual <= 0) return <span className="badge badge-red">Agotado</span>
@@ -223,9 +230,10 @@ export default function ProductoDetalle() {
                     </td>
                     <td>{m.usuario_nombre}</td>
                     <td>
-                      {m.tipo_movimiento === 'ENTRADA' && (m.numero_factura || m.banco_pago || m.fecha_pago_factura) ? (
+                      {m.tipo_movimiento === 'ENTRADA' && (m.numero_factura || m.banco_pago || m.fecha_pago_factura || m.precio_factura) ? (
                         <div style={{ lineHeight: 1.4 }}>
                           {m.numero_factura && <div><span className="td-strong">{m.numero_factura}</span></div>}
+                          {m.precio_factura && <div className="td-sub">{fmtPrecio(m.precio_factura)}</div>}
                           {m.banco_pago && <div className="td-sub">{m.banco_pago}</div>}
                           {m.fecha_pago_factura && <div className="td-sub">Pago: {fmtFecha(m.fecha_pago_factura)}</div>}
                         </div>

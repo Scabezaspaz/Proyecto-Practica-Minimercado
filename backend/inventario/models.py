@@ -150,6 +150,16 @@ class Movimiento(models.Model):
         blank=True
     )
 
+    precio_factura = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[
+            MinValueValidator(Decimal("0.00"))
+        ]
+    )
+
     fecha_movimiento = models.DateTimeField(
         auto_now_add=True,
         db_index=True
@@ -166,6 +176,7 @@ class Movimiento(models.Model):
             self.numero_factura = ''
             self.fecha_pago_factura = None
             self.banco_pago = ''
+            self.precio_factura = None
 
         if not self.producto_id:
             return
