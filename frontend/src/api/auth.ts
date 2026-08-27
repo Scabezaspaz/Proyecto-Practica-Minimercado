@@ -39,3 +39,19 @@ export function getUsername(): string {
 export function isAuthenticated(): boolean {
   return !!getAccessToken()
 }
+
+// --- Recuperación de contraseña ---
+
+// Paso 1: verifica si existe una cuenta activa con ese correo.
+export async function verificarCorreo(correo: string): Promise<boolean> {
+  const res = await api.post('/auth/password/verificar-correo/', { correo })
+  return Boolean(res.data?.existe)
+}
+
+// Paso 2: restablece la contraseña del usuario asociado a ese correo.
+export async function restablecerPassword(
+  correo: string,
+  nueva_password: string,
+): Promise<void> {
+  await api.post('/auth/password/restablecer/', { correo, nueva_password })
+}

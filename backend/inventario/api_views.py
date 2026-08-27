@@ -1,13 +1,19 @@
+from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import models
 
 from rest_framework import mixins, viewsets
 from rest_framework.exceptions import ValidationError as DRFValidationError
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Producto, Movimiento
 from .serializers import ProductoSerializer, MovimientoSerializer
+
+
+User = get_user_model()
 
 
 class ProductoViewSet(viewsets.ModelViewSet):
@@ -122,3 +128,77 @@ class DashboardAPIView(APIView):
         }
 
         return Response(datos)
+
+
+class PasswordCheckEmailAPIView(APIView):
+    """
+    Paso 1 de "olvidé mi contraseña".
+    Verifica si existe un usuario activo con el correo indicado.
+    """
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        correo = str(request.data.get('correo', '')).strip()
+
+        if not correo:
+            return Response(
+                {'detail': 'Ingresa un correo electrónico.'},
+                status=400
+            )
+
+        existe = User.objects.filter(
+            email__iexact=correo,
+            is_active=True
+        ).exists()
+
+        return Response({'existe': existe})
+
+
+class PasswordResetAPIView(APIView):
+    """
+    Paso 2 de "olvidé mi contraseña".
+    Restablece la contraseña de un usuario a partir de su correo.
+    Solo procede si el correo existe en la base de datos.
+    """
+
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        correo = str(request.data.get('correo', '')).strip()
+        nueva = str(request.data.get('nueva_password', ''))
+
+        if not correo:
+            return Response(
+                {'detail': 'Ingresa un correo electrónico.'},
+                status=400
+            )
+
+        usuario = User.objects.filter(
+            email__iexact=correo,
+            is_active=True
+        ).first()
+
+        if usuario is None:
+            return Response(
+                {'detail': 'No existe una cuenta activa con ese correo.'},
+                status=404
+            )
+
+        # Valida la nueva contraseña con las reglas del proyecto.
+        try:
+            validate_password(nueva, user=usuario)
+        except DjangoValidationError as error:
+            return Response(
+                {'nueva_password': list(error.messages)},
+                status=400
+            )
+
+        usuario.set_password(nueva)
+        usuario.save(update_fields=['password'])
+
+        return Response(
+            {'detail': 'Contraseña actualizada correctamente.'}
+        )

@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
 import Icon from '../components/Icon'
 import MovimientoModal from '../components/MovimientoModal'
+import Pagination from '../components/Pagination'
 import { getMovimientos } from '../api/movimientos'
 import type { Movimiento } from '../api/types'
+
+const POR_PAGINA = 30
 
 function fmtFechaHora(iso: string): string {
   const d = new Date(iso)
@@ -20,6 +23,7 @@ export default function Movimientos() {
   const [filtroTipo, setFiltroTipo] = useState<'' | 'ENTRADA' | 'SALIDA'>('')
   const [modalAbierto, setModalAbierto] = useState(false)
   const [tipoModal, setTipoModal] = useState<'ENTRADA' | 'SALIDA'>('ENTRADA')
+  const [pagina, setPagina] = useState(1)
 
   async function cargar() {
     try {
@@ -35,6 +39,7 @@ export default function Movimientos() {
   }
 
   useEffect(() => {
+    setPagina(1)
     const t = setTimeout(() => cargar(), filtroProducto ? 350 : 0)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -49,6 +54,11 @@ export default function Movimientos() {
     setModalAbierto(false)
     cargar()
   }
+
+  // Paginación (30 por página) en memoria.
+  const totalPaginas = Math.max(1, Math.ceil(movimientos.length / POR_PAGINA))
+  const paginaActual = Math.min(pagina, totalPaginas)
+  const paginados = movimientos.slice((paginaActual - 1) * POR_PAGINA, paginaActual * POR_PAGINA)
 
   return (
     <>
@@ -127,7 +137,7 @@ export default function Movimientos() {
                 </tr>
               </thead>
               <tbody>
-                {movimientos.map((m) => (
+                {paginados.map((m) => (
                   <tr key={m.id}>
                     <td>{fmtFechaHora(m.fecha_movimiento)}</td>
                     <td><span className="td-strong">{m.producto_nombre}</span></td>
@@ -153,6 +163,9 @@ export default function Movimientos() {
             </table>
           )}
         </div>
+        {!loading && !error && (
+          <Pagination page={paginaActual} pageSize={POR_PAGINA} total={movimientos.length} onChange={setPagina} />
+        )}
       </div>
 
       {modalAbierto && (

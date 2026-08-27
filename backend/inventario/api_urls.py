@@ -10,6 +10,8 @@ from .api_views import (
     ProductoViewSet,
     MovimientoViewSet,
     DashboardAPIView,
+    PasswordCheckEmailAPIView,
+    PasswordResetAPIView,
 )
 
 
@@ -31,6 +33,19 @@ urlpatterns = [
         'auth/refresh/',
         TokenRefreshView.as_view(),
         name='token_refresh'
+    ),
+
+    # Recuperación de contraseña (olvidé mi contraseña)
+    path(
+        'auth/password/verificar-correo/',
+        PasswordCheckEmailAPIView.as_view(),
+        name='password_check_email'
+    ),
+
+    path(
+        'auth/password/restablecer/',
+        PasswordResetAPIView.as_view(),
+        name='password_reset'
     ),
 
     # Panel principal

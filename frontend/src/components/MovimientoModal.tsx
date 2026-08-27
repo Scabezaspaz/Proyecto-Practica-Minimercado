@@ -225,20 +225,17 @@ export default function MovimientoModal({ tipoInicial, productoIdInicial, onClos
                     </div>
                     <div className="field" style={{ margin: '10px 0 0' }}>
                       <label htmlFor="m-banco" className="hint">Banco donde se pagó</label>
-                      <input
+                      <select
                         className="input"
                         id="m-banco"
-                        type="text"
-                        list="bancos-lista"
                         value={banco}
                         onChange={(e) => setBanco(e.target.value)}
-                        placeholder="Ej: Bancolombia"
-                      />
-                      <datalist id="bancos-lista">
+                      >
+                        <option value="">— Selecciona un banco —</option>
                         {BANCOS.map((b) => (
-                          <option key={b} value={b} />
+                          <option key={b} value={b}>{b}</option>
                         ))}
-                      </datalist>
+                      </select>
                     </div>
                   </div>
                 )}

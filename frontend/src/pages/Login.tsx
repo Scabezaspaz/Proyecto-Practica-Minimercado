@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
+import RecuperarPasswordModal from '../components/RecuperarPasswordModal'
 import { login, isAuthenticated } from '../api/auth'
 
 export default function Login() {
@@ -13,6 +14,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [errorUsuario, setErrorUsuario] = useState('')
   const [errorPassword, setErrorPassword] = useState('')
+  const [recuperarAbierto, setRecuperarAbierto] = useState(false)
 
   // Si ya hay sesión activa, saltamos directo al dashboard.
   useEffect(() => {
@@ -132,7 +134,7 @@ export default function Login() {
               href="#"
               onClick={(e) => {
                 e.preventDefault()
-                window.alert('Contacta al administrador del sistema para recuperar tu acceso.')
+                setRecuperarAbierto(true)
               }}
             >
               ¿Olvidaste tu contraseña?
@@ -150,6 +152,10 @@ export default function Login() {
 
         <p className="login-footer">© 2026 Mini Mercado Ecológico · Proyecto de práctica</p>
       </div>
+
+      {recuperarAbierto && (
+        <RecuperarPasswordModal onClose={() => setRecuperarAbierto(false)} />
+      )}
     </div>
   )
 }

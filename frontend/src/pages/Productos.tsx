@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import ProductoModal from '../components/ProductoModal'
+import Pagination from '../components/Pagination'
 import { getProductos, deleteProducto, apiErrorMessage } from '../api/productos'
 import { toast } from '../lib/toast'
 import type { Producto } from '../api/types'
+
+const POR_PAGINA = 30
 
 export default function Productos() {
   const [productos, setProductos] = useState<Producto[]>([])
@@ -13,6 +16,7 @@ export default function Productos() {
   const [busqueda, setBusqueda] = useState('')
   const [modalAbierto, setModalAbierto] = useState(false)
   const [editando, setEditando] = useState<Producto | null>(null)
+  const [pagina, setPagina] = useState(1)
   const navigate = useNavigate()
 
   async function cargar(q = '') {
@@ -30,6 +34,7 @@ export default function Productos() {
 
   // Carga inicial + búsqueda con retraso (debounce)
   useEffect(() => {
+    setPagina(1)
     const t = setTimeout(() => cargar(busqueda.trim()), busqueda ? 350 : 0)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -67,6 +72,11 @@ export default function Productos() {
     if (p.stock_bajo) return <span className="badge badge-amber">Stock bajo</span>
     return <span className="badge badge-green">Disponible</span>
   }
+
+  // Paginación (30 por página) en memoria.
+  const totalPaginas = Math.max(1, Math.ceil(productos.length / POR_PAGINA))
+  const paginaActual = Math.min(pagina, totalPaginas)
+  const paginados = productos.slice((paginaActual - 1) * POR_PAGINA, paginaActual * POR_PAGINA)
 
   return (
     <>
@@ -132,7 +142,7 @@ export default function Productos() {
                 </tr>
               </thead>
               <tbody>
-                {productos.map((p) => {
+                {paginados.map((p) => {
                   const actual = Number(p.stock_actual) || 0
                   const min = Number(p.stock_minimo) || 0
                   const fill = min > 0 ? Math.min(100, Math.round((actual / min) * 50)) : actual > 0 ? 100 : 0
@@ -172,6 +182,9 @@ export default function Productos() {
             </table>
           )}
         </div>
+        {!loading && !error && (
+          <Pagination page={paginaActual} pageSize={POR_PAGINA} total={productos.length} onChange={setPagina} />
+        )}
       </div>
 
       {modalAbierto && (
