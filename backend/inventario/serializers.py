@@ -1,6 +1,45 @@
+from django.contrib.auth import get_user_model
+
 from rest_framework import serializers
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Producto, Movimiento
+
+
+User = get_user_model()
+
+
+class EmailTokenObtainSerializer(serializers.Serializer):
+    """
+    Login por correo electrónico (en vez de usuario).
+    Valida el correo contra la base de datos y devuelve los tokens JWT.
+    """
+
+    correo = serializers.EmailField()
+    password = serializers.CharField(write_only=True, style={'input_type': 'password'})
+
+    def validate(self, attrs):
+        correo = attrs.get('correo', '').strip()
+        password = attrs.get('password', '')
+
+        usuario = User.objects.filter(
+            email__iexact=correo,
+            is_active=True
+        ).first()
+
+        if usuario is None or not usuario.check_password(password):
+            raise serializers.ValidationError(
+                'Correo o contraseña incorrectos. Verifica tus datos.'
+            )
+
+        refresh = RefreshToken.for_user(usuario)
+
+        return {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+            'username': usuario.username,
+            'correo': usuario.email,
+        }
 
 
 class ProductoSerializer(serializers.ModelSerializer):

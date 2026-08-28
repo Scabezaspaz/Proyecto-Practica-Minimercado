@@ -7,12 +7,12 @@ import { login, isAuthenticated } from '../api/auth'
 export default function Login() {
   const navigate = useNavigate()
 
-  const [usuario, setUsuario] = useState('')
+  const [correo, setCorreo] = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
   const [recordar, setRecordar] = useState(true)
   const [loading, setLoading] = useState(false)
-  const [errorUsuario, setErrorUsuario] = useState('')
+  const [errorCorreo, setErrorCorreo] = useState('')
   const [errorPassword, setErrorPassword] = useState('')
   const [recuperarAbierto, setRecuperarAbierto] = useState(false)
 
@@ -24,14 +24,14 @@ export default function Login() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
 
-    const u = usuario.trim()
+    const c = correo.trim()
     let ok = true
 
-    if (!u) {
-      setErrorUsuario('Ingresa tu usuario.')
+    if (!c) {
+      setErrorCorreo('Ingresa tu correo electrónico.')
       ok = false
     } else {
-      setErrorUsuario('')
+      setErrorCorreo('')
     }
 
     if (!password) {
@@ -45,10 +45,10 @@ export default function Login() {
 
     setLoading(true)
     try {
-      await login(u, password, recordar)
+      await login(c, password, recordar)
       navigate('/', { replace: true })
     } catch {
-      setErrorPassword('Usuario o contraseña incorrectos. Verifica tus datos.')
+      setErrorPassword('Correo o contraseña incorrectos. Verifica tus datos.')
     } finally {
       setLoading(false)
     }
@@ -62,28 +62,28 @@ export default function Login() {
         <p className="login-sub">Inicia sesión para continuar</p>
 
         <form onSubmit={handleSubmit} noValidate>
-          {/* Usuario */}
-          <div className={`field ${errorUsuario ? 'invalid' : ''}`}>
-            <label htmlFor="usuario">Usuario</label>
+          {/* Correo electrónico */}
+          <div className={`field ${errorCorreo ? 'invalid' : ''}`}>
+            <label htmlFor="correo">Correo electrónico</label>
             <div className="input-icon">
-              <Icon name="user" />
+              <Icon name="mail" />
               <input
                 className="input"
-                type="text"
-                id="usuario"
-                name="usuario"
-                placeholder="admin"
-                autoComplete="username"
-                value={usuario}
+                type="email"
+                id="correo"
+                name="correo"
+                placeholder="tucorreo@ejemplo.com"
+                autoComplete="email"
+                value={correo}
                 onChange={(e) => {
-                  setUsuario(e.target.value)
-                  if (errorUsuario) setErrorUsuario('')
+                  setCorreo(e.target.value)
+                  if (errorCorreo) setErrorCorreo('')
                 }}
               />
             </div>
             <span className="error">
               <Icon name="info" />
-              <span className="err-text">{errorUsuario}</span>
+              <span className="err-text">{errorCorreo}</span>
             </span>
           </div>
 

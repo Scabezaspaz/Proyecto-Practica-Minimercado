@@ -9,8 +9,20 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from rest_framework_simplejwt.views import TokenObtainPairView
+
 from .models import Producto, Movimiento
-from .serializers import ProductoSerializer, MovimientoSerializer
+from .serializers import (
+    ProductoSerializer,
+    MovimientoSerializer,
+    EmailTokenObtainSerializer,
+)
+
+
+class EmailTokenObtainPairView(TokenObtainPairView):
+    """Login con correo electrónico en lugar de usuario."""
+
+    serializer_class = EmailTokenObtainSerializer
 
 
 User = get_user_model()

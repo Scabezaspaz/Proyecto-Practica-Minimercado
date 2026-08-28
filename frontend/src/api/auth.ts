@@ -4,18 +4,19 @@ const ACCESS = 'access'
 const REFRESH = 'refresh'
 const USERNAME = 'username'
 
-// Inicia sesión contra la API y guarda los tokens + el usuario.
+// Inicia sesión contra la API (con correo electrónico) y guarda los
+// tokens + el nombre de usuario que devuelve el backend.
 //   recordar = true  -> localStorage   (persiste al cerrar el navegador)
 //   recordar = false -> sessionStorage (se borra al cerrar el navegador)
-export async function login(username: string, password: string, recordar = true) {
-  const response = await api.post('/auth/login/', { username, password })
+export async function login(correo: string, password: string, recordar = true) {
+  const response = await api.post('/auth/login/', { correo, password })
 
   logout() // limpia cualquier sesión previa en ambos almacenamientos
 
   const store = recordar ? localStorage : sessionStorage
   store.setItem(ACCESS, response.data.access)
   store.setItem(REFRESH, response.data.refresh)
-  store.setItem(USERNAME, username)
+  store.setItem(USERNAME, response.data.username || correo)
 }
 
 // Cierra sesión: borra todo de ambos almacenamientos
