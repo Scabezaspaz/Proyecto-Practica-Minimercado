@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import Icon from './Icon'
 import SelectMenu from './SelectMenu'
+import ProductPicker from './ProductPicker'
 import type { Producto } from '../api/types'
 import { getProductos, apiErrorMessage } from '../api/productos'
 import { createMovimiento } from '../api/movimientos'
@@ -153,19 +154,12 @@ export default function MovimientoModal({ tipoInicial, productoIdInicial, onClos
 
                 <div className="field">
                   <label htmlFor="m-prod">Producto</label>
-                  <select
-                    className="input"
-                    id="m-prod"
+                  <ProductPicker
+                    productos={productos}
                     value={productoId}
-                    onChange={(e) => setProductoId(e.target.value)}
+                    onChange={setProductoId}
                     disabled={productoBloqueado}
-                  >
-                    {productos.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.nombre} — {Number(p.stock_actual)} {p.unidad_medida}
-                      </option>
-                    ))}
-                  </select>
+                  />
                   {productoBloqueado && (
                     <span className="hint">Registrando movimiento para este producto.</span>
                   )}
@@ -184,6 +178,7 @@ export default function MovimientoModal({ tipoInicial, productoIdInicial, onClos
                       setCantidad(e.target.value)
                       if (errorCantidad) setErrorCantidad('')
                     }}
+                    onWheel={(e) => e.currentTarget.blur()}
                     placeholder="0.00"
                   />
                   {prod && (
@@ -237,6 +232,7 @@ export default function MovimientoModal({ tipoInicial, productoIdInicial, onClos
                           step="0.01"
                           value={precio}
                           onChange={(e) => setPrecio(e.target.value)}
+                          onWheel={(e) => e.currentTarget.blur()}
                           placeholder="0.00"
                         />
                       </div>

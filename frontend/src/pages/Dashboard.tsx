@@ -308,7 +308,7 @@ export default function Dashboard() {
                       <span className="ml-qty" style={{ color: 'var(--muted)', fontWeight: 500 }}>
                         {p.stock_actual} {p.unidad_medida_display}
                       </span>
-                      <Link className="icon-btn" to="/movimientos" title="Registrar entrada">
+                      <Link className="icon-btn" to={`/productos/${p.id}?nuevo=entrada`} title="Registrar entrada">
                         <Icon name="arrow-down" />
                       </Link>
                     </div>

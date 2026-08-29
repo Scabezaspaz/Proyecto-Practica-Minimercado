@@ -20,10 +20,8 @@ export default function Sidebar({ open, onNavigate }: SidebarProps) {
   const navigate = useNavigate()
 
   function handleLogout() {
-    if (window.confirm('¿Seguro que deseas cerrar sesión?')) {
-      logout()
-      navigate('/login', { replace: true })
-    }
+    logout()
+    navigate('/login', { replace: true })
   }
 
   return (

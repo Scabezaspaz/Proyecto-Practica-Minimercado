@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useSearchParams, Link } from 'react-router-dom'
 import Icon from '../components/Icon'
 import MovimientoModal from '../components/MovimientoModal'
 import { getProducto } from '../api/productos'
@@ -39,6 +39,7 @@ function estadoProducto(p: Producto) {
 
 export default function ProductoDetalle() {
   const { id = '' } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [producto, setProducto] = useState<Producto | null>(null)
   const [movimientos, setMovimientos] = useState<Movimiento[]>([])
   const [loading, setLoading] = useState(true)
@@ -68,6 +69,18 @@ export default function ProductoDetalle() {
     cargar()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
+
+  // Si llegamos con ?nuevo=entrada (p. ej. desde la campana), abrimos
+  // directamente el modal para registrar una entrada de este producto.
+  useEffect(() => {
+    if (searchParams.get('nuevo') === 'entrada') {
+      setTipoModal('ENTRADA')
+      setModalAbierto(true)
+      searchParams.delete('nuevo')
+      setSearchParams(searchParams, { replace: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function abrir(tipo: 'ENTRADA' | 'SALIDA') {
     setTipoModal(tipo)
@@ -100,12 +113,9 @@ export default function ProductoDetalle() {
   // Filtro por tipo (en memoria).
   const lista = movimientos.filter((m) => filtro === 'TODOS' || m.tipo_movimiento === filtro)
 
-  const totalEntradas = movimientos
-    .filter((m) => m.tipo_movimiento === 'ENTRADA')
-    .reduce((s, m) => s + (Number(m.cantidad) || 0), 0)
-  const totalSalidas = movimientos
-    .filter((m) => m.tipo_movimiento === 'SALIDA')
-    .reduce((s, m) => s + (Number(m.cantidad) || 0), 0)
+  // Número de movimientos de cada tipo (conteo, no suma de cantidades).
+  const totalEntradas = movimientos.filter((m) => m.tipo_movimiento === 'ENTRADA').length
+  const totalSalidas = movimientos.filter((m) => m.tipo_movimiento === 'SALIDA').length
 
   return (
     <>
@@ -146,12 +156,12 @@ export default function ProductoDetalle() {
                 <div className="num" style={{ fontSize: 20 }}>{Number(producto.stock_minimo)} {producto.unidad_medida}</div>
               </div>
               <div>
-                <div className="hint">Total entradas</div>
-                <div className="num" style={{ fontSize: 20 }}><span className="ml-qty up">+{totalEntradas}</span></div>
+                <div className="hint">Entradas</div>
+                <div className="num" style={{ fontSize: 20 }}><span className="ml-qty up">{totalEntradas}</span></div>
               </div>
               <div>
-                <div className="hint">Total salidas</div>
-                <div className="num" style={{ fontSize: 20 }}><span className="ml-qty down">−{totalSalidas}</span></div>
+                <div className="hint">Salidas</div>
+                <div className="num" style={{ fontSize: 20 }}><span className="ml-qty down">{totalSalidas}</span></div>
               </div>
             </div>
           </div>

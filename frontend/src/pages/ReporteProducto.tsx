@@ -157,6 +157,15 @@ export default function ReporteProducto() {
         </button>
       </div>
 
+      {/* Nota en pantalla: el documento solo aparece al imprimir/guardar PDF */}
+      <div className="report-screen-note">
+        <Icon name="info" />
+        <div>
+          El reporte de <b>{producto.nombre}</b> ({periodoTexto}) se generará al pulsar{' '}
+          <b>Imprimir / Guardar PDF</b>. Aquí no se muestra la vista previa para mantener la pantalla limpia.
+        </div>
+      </div>
+
       {/* Documento del reporte (esto sí sale en el PDF) */}
       <div className="report-doc">
         <div className="report-header">

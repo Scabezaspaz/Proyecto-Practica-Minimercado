@@ -147,6 +147,7 @@ export default function ProductoModal({ producto, onClose, onSaved }: Props) {
                   step="0.01"
                   value={stockMinimo}
                   onChange={(e) => setStockMinimo(e.target.value)}
+                  onWheel={(e) => e.currentTarget.blur()}
                 />
               </div>
 
@@ -161,6 +162,7 @@ export default function ProductoModal({ producto, onClose, onSaved }: Props) {
                     step="0.01"
                     value={stockActual}
                     onChange={(e) => setStockActual(e.target.value)}
+                    onWheel={(e) => e.currentTarget.blur()}
                   />
                 </div>
               )}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import ProductoModal from '../components/ProductoModal'
+import ConfirmDialog from '../components/ConfirmDialog'
 import Pagination from '../components/Pagination'
 import { getProductos, deleteProducto, apiErrorMessage } from '../api/productos'
 import { toast } from '../lib/toast'
@@ -16,6 +17,7 @@ export default function Productos() {
   const [busqueda, setBusqueda] = useState('')
   const [modalAbierto, setModalAbierto] = useState(false)
   const [editando, setEditando] = useState<Producto | null>(null)
+  const [aDesactivar, setADesactivar] = useState<Producto | null>(null)
   const [pagina, setPagina] = useState(1)
   const navigate = useNavigate()
 
@@ -55,8 +57,10 @@ export default function Productos() {
     cargar(busqueda.trim())
   }
 
-  async function handleDelete(p: Producto) {
-    if (!window.confirm(`¿Desactivar "${p.nombre}"? Dejará de aparecer en el inventario.`)) return
+  async function confirmarDesactivar() {
+    const p = aDesactivar
+    if (!p) return
+    setADesactivar(null)
     try {
       await deleteProducto(p.id)
       toast('Producto desactivado.', 'success')
@@ -170,7 +174,7 @@ export default function Productos() {
                           <button className="icon-btn" title="Editar" onClick={() => abrirEditar(p)}>
                             <Icon name="pencil" />
                           </button>
-                          <button className="icon-btn" title="Desactivar" onClick={() => handleDelete(p)}>
+                          <button className="icon-btn" title="Desactivar" onClick={() => setADesactivar(p)}>
                             <Icon name="trash" />
                           </button>
                         </div>
@@ -189,6 +193,17 @@ export default function Productos() {
 
       {modalAbierto && (
         <ProductoModal producto={editando} onClose={() => setModalAbierto(false)} onSaved={onSaved} />
+      )}
+
+      {aDesactivar && (
+        <ConfirmDialog
+          title="Desactivar producto"
+          message={`¿Seguro que deseas desactivar "${aDesactivar.nombre}"? Dejará de aparecer en el inventario.`}
+          confirmLabel="Desactivar"
+          tone="danger"
+          onConfirm={confirmarDesactivar}
+          onCancel={() => setADesactivar(null)}
+        />
       )}
     </>
   )

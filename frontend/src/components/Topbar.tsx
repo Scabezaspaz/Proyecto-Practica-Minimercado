@@ -77,12 +77,17 @@ export default function Topbar({ title, onMenu }: TopbarProps) {
               </div>
             ) : (
               alertas.map((p) => (
-                <Link className="dropdown-item" to="/productos" key={p.id} onClick={() => setOpen(false)}>
+                <Link
+                  className="dropdown-item"
+                  to={`/productos/${p.id}?nuevo=entrada`}
+                  key={p.id}
+                  onClick={() => setOpen(false)}
+                >
                   <span className="di-icon"><Icon name="alert-triangle" /></span>
                   <div>
                     <strong>{p.nombre}</strong>
                     <span>
-                      Stock: {Number(p.stock_actual)} {p.unidad_medida} · mínimo {Number(p.stock_minimo)}
+                      Stock: {Number(p.stock_actual)} {p.unidad_medida} · mínimo {Number(p.stock_minimo)} · registrar entrada
                     </span>
                   </div>
                 </Link>

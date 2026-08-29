@@ -148,13 +148,7 @@ export default function Movimientos() {
                         <span className="badge badge-neutral"><Icon name="arrow-up" />Salida</span>
                       )}
                     </td>
-                    <td className="num">
-                      {m.tipo_movimiento === 'ENTRADA' ? (
-                        <span className="ml-qty up">+{Number(m.cantidad)}</span>
-                      ) : (
-                        <span className="ml-qty down">−{Number(m.cantidad)}</span>
-                      )}
-                    </td>
+                    <td className="num">{Number(m.cantidad)}</td>
                     <td>{m.usuario_nombre}</td>
                     <td>{m.observacion ? m.observacion : <span style={{ color: 'var(--subtle)' }}>—</span>}</td>
                   </tr>
