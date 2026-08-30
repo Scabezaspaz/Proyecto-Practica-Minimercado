@@ -233,6 +233,7 @@ textarea.input{min-height:92px;resize:vertical;line-height:1.5}
 /* ---------- Desplegable propio (abre siempre hacia abajo) ---------- */
 .sdown{position:relative}
 .sdown-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;text-align:left;font:inherit;cursor:pointer}
+.sdown-btn .sdown-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sdown-btn .sdown-ph{color:var(--muted)}
 .sdown-btn svg{width:16px;height:16px;color:var(--muted);flex:none;transition:transform .15s}
 .sdown.open .sdown-btn svg{transform:rotate(180deg)}

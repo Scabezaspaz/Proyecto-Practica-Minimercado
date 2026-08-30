@@ -52,7 +52,7 @@ export default function ProductPicker({ productos, value, onChange, disabled }: 
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span className={seleccionado ? '' : 'sdown-ph'}>
+        <span className={`sdown-text ${seleccionado ? '' : 'sdown-ph'}`}>
           {seleccionado
             ? `${seleccionado.nombre} — ${Number(seleccionado.stock_actual)} ${seleccionado.unidad_medida}`
             : 'Selecciona un producto…'}

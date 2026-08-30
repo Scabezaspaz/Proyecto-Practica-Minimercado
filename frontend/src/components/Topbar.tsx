@@ -1,16 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Icon from './Icon'
-import { getUsername } from '../api/auth'
 import api from '../api/client'
 import type { Producto } from '../api/types'
-
-// Iniciales para el avatar (ej: "santiago cabezas" -> "SC", "admin" -> "AD")
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/)
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase()
-  return name.trim().slice(0, 2).toUpperCase()
-}
 
 type TopbarProps = {
   title: string
@@ -18,7 +10,6 @@ type TopbarProps = {
 }
 
 export default function Topbar({ title, onMenu }: TopbarProps) {
-  const username = getUsername()
   const [open, setOpen] = useState(false)
   const [alertas, setAlertas] = useState<Producto[]>([])
   const wrapRef = useRef<HTMLDivElement>(null)
@@ -94,16 +85,6 @@ export default function Topbar({ title, onMenu }: TopbarProps) {
               ))
             )}
           </div>
-        </div>
-
-        <span className="topbar-divider"></span>
-
-        <div className="user-chip">
-          <span className="avatar">{initials(username)}</span>
-          <span className="user-chip-text">
-            <strong>{username}</strong>
-            <em>Administrador</em>
-          </span>
         </div>
       </div>
     </header>

@@ -89,7 +89,7 @@ export default function MovimientoModal({ tipoInicial, productoIdInicial, onClos
               numero_factura: numeroFactura.trim(),
               fecha_pago_factura: fechaPago || null,
               banco_pago: banco.trim(),
-              precio_factura: precio ? precio : null,
+              precio_factura: precio ? precio.replace(/\./g, '') : null,
             }
           : {}),
       })
@@ -227,13 +227,15 @@ export default function MovimientoModal({ tipoInicial, productoIdInicial, onClos
                         <input
                           className="input"
                           id="m-precio"
-                          type="number"
-                          min="0"
-                          step="0.01"
+                          type="text"
+                          inputMode="numeric"
                           value={precio}
-                          onChange={(e) => setPrecio(e.target.value)}
-                          onWheel={(e) => e.currentTarget.blur()}
-                          placeholder="0.00"
+                          onChange={(e) => {
+                            // Solo dígitos; se muestran con puntos de miles (es-CO).
+                            const raw = e.target.value.replace(/\D/g, '')
+                            setPrecio(raw ? Number(raw).toLocaleString('es-CO') : '')
+                          }}
+                          placeholder="Ej: 1.000.000"
                         />
                       </div>
                       <div className="field" style={{ margin: 0 }}>
@@ -242,7 +244,7 @@ export default function MovimientoModal({ tipoInicial, productoIdInicial, onClos
                           id="m-banco"
                           value={banco}
                           options={BANCOS}
-                          placeholder="— Selecciona un banco —"
+                          placeholder="Selecciona un banco"
                           onChange={setBanco}
                         />
                       </div>

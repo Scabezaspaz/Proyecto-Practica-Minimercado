@@ -40,7 +40,7 @@ export default function SelectMenu({ id, value, options, placeholder = 'Seleccio
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span className={value ? '' : 'sdown-ph'}>{value || placeholder}</span>
+        <span className={`sdown-text ${value ? '' : 'sdown-ph'}`}>{value || placeholder}</span>
         <Icon name="chevron-down" />
       </button>
       {open && (
