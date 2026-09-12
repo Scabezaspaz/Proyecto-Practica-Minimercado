@@ -141,7 +141,6 @@ export default function Dashboard() {
             <div className="kpi-meta">
               <span className="kpi-label">Total de productos</span>
               <span className="kpi-value">{data.total_productos}</span>
-              <span className="kpi-note">{data.total_productos} en el catálogo</span>
             </div>
           </div>
           <div className="card kpi">
@@ -149,13 +148,6 @@ export default function Dashboard() {
             <div className="kpi-meta">
               <span className="kpi-label">Productos con stock bajo</span>
               <span className="kpi-value">{data.productos_stock_bajo}</span>
-              <span className="kpi-note">
-                {data.productos_stock_bajo > 0 ? (
-                  <b>{data.productos_stock_bajo} requieren reposición</b>
-                ) : (
-                  'Todo en orden'
-                )}
-              </span>
             </div>
           </div>
           <div className="card kpi">
