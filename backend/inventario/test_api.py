@@ -71,6 +71,19 @@ class TestLogin:
 
         assert resp.status_code == 400
 
+    def test_refresh_token_entrega_nuevo_access(self, api_client, usuario):
+        login = api_client.post(self.URL, {
+            'correo': 'empleado@minimercado.com',
+            'password': 'clave-segura-123',
+        }, format='json')
+
+        resp = api_client.post('/api/auth/refresh/', {
+            'refresh': login.data['refresh'],
+        }, format='json')
+
+        assert resp.status_code == 200
+        assert 'access' in resp.data
+
 
 # ---------------------------------------------------------------------------
 # Recuperación de contraseña
@@ -136,6 +149,20 @@ class TestProductosAPI:
     def test_listar_requiere_autenticacion(self, api_client):
         resp = api_client.get(self.URL)
         assert resp.status_code == 401
+
+    def test_crear_requiere_autenticacion(self, api_client):
+        resp = api_client.post(self.URL, {
+            'nombre': 'Pirata', 'descripcion': '', 'unidad_medida': 'kg',
+            'stock_actual': '1.00', 'stock_minimo': '1.00',
+        }, format='json')
+        assert resp.status_code == 401
+
+    def test_unidad_medida_invalida_es_rechazada(self, auth_client):
+        resp = auth_client.post(self.URL, {
+            'nombre': 'Café', 'descripcion': '', 'unidad_medida': 'xx',
+            'stock_actual': '1.00', 'stock_minimo': '1.00',
+        }, format='json')
+        assert resp.status_code == 400
 
     def test_crear_producto(self, auth_client):
         resp = auth_client.post(self.URL, {
@@ -363,6 +390,41 @@ class TestMovimientosAPI:
         assert resp.data['numero_factura'] == ''
         assert resp.data['banco_pago'] == ''
         assert resp.data['precio_factura'] is None
+
+    def test_producto_inexistente_es_rechazado(self, auth_client):
+        resp = auth_client.post(self.URL, {
+            'producto': '00000000-0000-0000-0000-000000000000',
+            'tipo_movimiento': 'ENTRADA',
+            'cantidad': '1.00',
+            'observacion': '',
+        }, format='json')
+        assert resp.status_code == 400
+
+    def test_salida_exacta_deja_stock_en_cero(self, auth_client, producto):
+        resp = auth_client.post(self.URL, {
+            'producto': str(producto.id),
+            'tipo_movimiento': 'SALIDA',
+            'cantidad': '10.00',
+            'observacion': '',
+        }, format='json')
+
+        assert resp.status_code == 201
+        producto.refresh_from_db()
+        assert producto.stock_actual == Decimal('0.00')
+
+    def test_detalle_de_un_movimiento(self, auth_client, producto):
+        crear = auth_client.post(self.URL, {
+            'producto': str(producto.id),
+            'tipo_movimiento': 'ENTRADA',
+            'cantidad': '3.00',
+            'observacion': 'compra',
+        }, format='json')
+        mid = crear.data['id']
+
+        resp = auth_client.get(f'{self.URL}{mid}/')
+        assert resp.status_code == 200
+        assert resp.data['observacion'] == 'compra'
+        assert resp.data['producto_nombre'] == 'Maíz'
 
 
 # ---------------------------------------------------------------------------
