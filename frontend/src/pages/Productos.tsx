@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import Icon from '../components/Icon'
 import ProductoModal from '../components/ProductoModal'
 import ConfirmDialog from '../components/ConfirmDialog'
 import Pagination from '../components/Pagination'
 import { getProductos, deleteProducto, apiErrorMessage } from '../api/productos'
+import { categoriasApi } from '../api/categorias'
+import { proveedoresApi } from '../api/proveedores'
 import { toast } from '../lib/toast'
-import type { Producto } from '../api/types'
+import type { Categoria, Producto, Proveedor } from '../api/types'
 
 const POR_PAGINA = 30
 
@@ -20,11 +22,30 @@ export default function Productos() {
   const [aDesactivar, setADesactivar] = useState<Producto | null>(null)
   const [pagina, setPagina] = useState(1)
   const navigate = useNavigate()
+  const [params, setParams] = useSearchParams()
+  const filtroCategoria = params.get('categoria') ?? ''
+  const filtroProveedor = params.get('proveedor') ?? ''
+  const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [proveedores, setProveedores] = useState<Proveedor[]>([])
+
+  useEffect(() => {
+    categoriasApi.listar().then(setCategorias).catch(() => {})
+    proveedoresApi.listar().then(setProveedores).catch(() => {})
+  }, [])
+
+  function cambiarFiltro(clave: 'categoria' | 'proveedor', valor: string) {
+    const nuevos = new URLSearchParams(params)
+    if (valor) nuevos.set(clave, valor)
+    else nuevos.delete(clave)
+    setParams(nuevos, { replace: true })
+  }
+
+  const hayFiltros = Boolean(busqueda || filtroCategoria || filtroProveedor)
 
   async function cargar(q = '') {
     try {
       setLoading(true)
-      const data = await getProductos(q)
+      const data = await getProductos(q, { categoria: filtroCategoria, proveedor: filtroProveedor })
       setProductos(data)
       setError('')
     } catch {
@@ -40,7 +61,7 @@ export default function Productos() {
     const t = setTimeout(() => cargar(busqueda.trim()), busqueda ? 350 : 0)
     return () => clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [busqueda])
+  }, [busqueda, filtroCategoria, filtroProveedor])
 
   function abrirNuevo() {
     setEditando(null)
@@ -103,6 +124,30 @@ export default function Productos() {
             onChange={(e) => setBusqueda(e.target.value)}
           />
         </div>
+        <select
+          className="input"
+          style={{ maxWidth: 220 }}
+          aria-label="Filtrar por categoría"
+          value={filtroCategoria}
+          onChange={(e) => cambiarFiltro('categoria', e.target.value)}
+        >
+          <option value="">Todas las categorías</option>
+          {categorias.map((c) => (
+            <option key={c.id} value={c.id}>{c.nombre}</option>
+          ))}
+        </select>
+        <select
+          className="input"
+          style={{ maxWidth: 220 }}
+          aria-label="Filtrar por proveedor"
+          value={filtroProveedor}
+          onChange={(e) => cambiarFiltro('proveedor', e.target.value)}
+        >
+          <option value="">Todos los proveedores</option>
+          {proveedores.map((p) => (
+            <option key={p.id} value={p.id}>{p.nombre}</option>
+          ))}
+        </select>
       </div>
 
       <div className="card">
@@ -121,13 +166,13 @@ export default function Productos() {
           ) : productos.length === 0 ? (
             <div className="empty">
               <span className="empty-icon"><Icon name="box" /></span>
-              <h3>{busqueda ? 'Sin resultados' : 'Aún no hay productos'}</h3>
+              <h3>{hayFiltros ? 'Sin resultados' : 'Aún no hay productos'}</h3>
               <p>
-                {busqueda
-                  ? 'No encontramos productos con ese nombre.'
+                {hayFiltros
+                  ? 'No encontramos productos con esos criterios.'
                   : 'Empieza agregando tu primer producto al inventario.'}
               </p>
-              {!busqueda && (
+              {!hayFiltros && (
                 <button className="btn btn-primary" onClick={abrirNuevo}>
                   <Icon name="plus" />Nuevo producto
                 </button>
@@ -138,6 +183,7 @@ export default function Productos() {
               <thead>
                 <tr>
                   <th>Producto</th>
+                  <th>Categoría</th>
                   <th>Unidad</th>
                   <th>Stock actual</th>
                   <th className="num">Mínimo</th>
@@ -156,6 +202,10 @@ export default function Productos() {
                       <td>
                         <span className="td-strong">{p.nombre}</span>
                         {p.descripcion && <span className="td-sub">{p.descripcion}</span>}
+                      </td>
+                      <td>
+                        <span className="badge badge-neutral badge-no-dot">{p.categoria_nombre}</span>
+                        {p.proveedor_nombre && <span className="td-sub">{p.proveedor_nombre}</span>}
                       </td>
                       <td>{p.unidad_medida_display}</td>
                       <td>

@@ -144,6 +144,11 @@ export default function ProductoDetalle() {
             <div style={{ flex: '1 1 220px' }}>
               <div className="td-strong" style={{ fontSize: 18 }}>{producto.nombre}</div>
               {producto.descripcion && <div className="td-sub">{producto.descripcion}</div>}
+              <div className="td-sub" style={{ marginTop: 4 }}>
+                Categoría: <b>{producto.categoria_nombre}</b>
+                {' · '}
+                Proveedor: <b>{producto.proveedor_nombre ?? 'Sin proveedor'}</b>
+              </div>
               <div style={{ marginTop: 8 }}>{estadoProducto(producto)}</div>
             </div>
             <div style={{ display: 'flex', gap: 28, flexWrap: 'wrap' }}>

@@ -1,7 +1,68 @@
 from django.contrib import admin
 from django.utils import timezone
 
-from .models import Producto, Movimiento
+from .models import Categoria, Compra, DetalleCompra, Movimiento, Producto, Proveedor
+
+
+class ProductosActivosMixin:
+    """Columna con el número de productos activos asociados."""
+
+    @admin.display(description='Productos activos')
+    def total_productos(self, obj):
+        return obj.productos_activos().count()
+
+
+@admin.register(Categoria)
+class CategoriaAdmin(ProductosActivosMixin, admin.ModelAdmin):
+
+    list_display = (
+        'nombre',
+        'total_productos',
+        'activo',
+        'fecha_creacion',
+    )
+
+    list_filter = (
+        'activo',
+    )
+
+    search_fields = (
+        'nombre',
+        'descripcion',
+    )
+
+    ordering = (
+        'nombre',
+    )
+
+
+@admin.register(Proveedor)
+class ProveedorAdmin(ProductosActivosMixin, admin.ModelAdmin):
+
+    list_display = (
+        'nombre',
+        'nit',
+        'contacto',
+        'telefono',
+        'correo',
+        'total_productos',
+        'activo',
+    )
+
+    list_filter = (
+        'activo',
+    )
+
+    search_fields = (
+        'nombre',
+        'nit',
+        'contacto',
+        'correo',
+    )
+
+    ordering = (
+        'nombre',
+    )
 
 
 @admin.register(Producto)
@@ -9,6 +70,8 @@ class ProductoAdmin(admin.ModelAdmin):
 
     list_display = (
         'nombre',
+        'categoria',
+        'proveedor',
         'unidad_medida',
         'stock_actual',
         'stock_minimo',
@@ -20,6 +83,13 @@ class ProductoAdmin(admin.ModelAdmin):
     list_filter = (
         'activo',
         'unidad_medida',
+        'categoria',
+        'proveedor',
+    )
+
+    list_select_related = (
+        'categoria',
+        'proveedor',
     )
 
     search_fields = (
@@ -108,4 +178,54 @@ class MovimientoAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         # Los movimientos no se pueden eliminar (coherente con el modelo).
+        return False
+
+
+class DetalleCompraInline(admin.TabularInline):
+    model = DetalleCompra
+    extra = 0
+    can_delete = False
+    fields = ('producto', 'cantidad', 'precio_unitario', 'subtotal', 'movimiento')
+    readonly_fields = fields
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(Compra)
+class CompraAdmin(admin.ModelAdmin):
+    """
+    Solo consulta: las compras se registran desde la aplicación, porque
+    deben generar las entradas de inventario en una misma transacción.
+    """
+
+    list_display = (
+        'fecha_compra',
+        'proveedor',
+        'numero_factura',
+        'total',
+        'usuario',
+        'fecha_registro',
+    )
+
+    list_filter = (
+        'proveedor',
+        'fecha_compra',
+    )
+
+    search_fields = (
+        'numero_factura',
+        'proveedor__nombre',
+    )
+
+    list_select_related = ('proveedor', 'usuario')
+    inlines = [DetalleCompraInline]
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
         return False

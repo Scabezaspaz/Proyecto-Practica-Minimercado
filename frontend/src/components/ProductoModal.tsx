@@ -1,12 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import Icon from './Icon'
-import type { Producto } from '../api/types'
+import type { Categoria, Producto, Proveedor } from '../api/types'
 import {
   createProducto,
   updateProducto,
   apiErrorMessage,
   type ProductoInput,
 } from '../api/productos'
+import { categoriasApi } from '../api/categorias'
+import { proveedoresApi } from '../api/proveedores'
 import { toast } from '../lib/toast'
 
 const UNIDADES = [
@@ -34,6 +36,17 @@ export default function ProductoModal({ producto, onClose, onSaved }: Props) {
   const [stockMinimo, setStockMinimo] = useState('0')
   const [saving, setSaving] = useState(false)
   const [errorNombre, setErrorNombre] = useState('')
+  const [errorCategoria, setErrorCategoria] = useState('')
+  const [categoria, setCategoria] = useState('')
+  const [proveedor, setProveedor] = useState('')
+  const [categorias, setCategorias] = useState<Categoria[]>([])
+  const [proveedores, setProveedores] = useState<Proveedor[]>([])
+
+  // Opciones de los desplegables (solo categorías y proveedores activos).
+  useEffect(() => {
+    categoriasApi.listar().then(setCategorias).catch(() => {})
+    proveedoresApi.listar().then(setProveedores).catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (producto) {
@@ -42,6 +55,8 @@ export default function ProductoModal({ producto, onClose, onSaved }: Props) {
       setUnidad(producto.unidad_medida)
       setStockActual(String(producto.stock_actual))
       setStockMinimo(String(producto.stock_minimo))
+      setCategoria(producto.categoria)
+      setProveedor(producto.proveedor ?? '')
     }
     document.body.classList.add('modal-open')
     return () => document.body.classList.remove('modal-open')
@@ -53,6 +68,10 @@ export default function ProductoModal({ producto, onClose, onSaved }: Props) {
       setErrorNombre('El nombre es obligatorio.')
       return
     }
+    if (!categoria) {
+      setErrorCategoria('Selecciona una categoría.')
+      return
+    }
 
     setSaving(true)
     try {
@@ -62,6 +81,8 @@ export default function ProductoModal({ producto, onClose, onSaved }: Props) {
           descripcion: descripcion.trim(),
           unidad_medida: unidad,
           stock_minimo: stockMinimo,
+          categoria,
+          proveedor: proveedor || null,
         })
         toast('Producto actualizado correctamente.', 'success')
       } else {
@@ -71,6 +92,8 @@ export default function ProductoModal({ producto, onClose, onSaved }: Props) {
           unidad_medida: unidad,
           stock_actual: stockActual,
           stock_minimo: stockMinimo,
+          categoria,
+          proveedor: proveedor || null,
         }
         await createProducto(data)
         toast('Producto creado correctamente.', 'success')
@@ -121,6 +144,43 @@ export default function ProductoModal({ producto, onClose, onSaved }: Props) {
                   <Icon name="info" />
                   <span className="err-text">{errorNombre}</span>
                 </span>
+              </div>
+
+              <div className={`field ${errorCategoria ? 'invalid' : ''}`}>
+                <label htmlFor="p-categoria">Categoría</label>
+                <select
+                  className="input"
+                  id="p-categoria"
+                  value={categoria}
+                  onChange={(e) => {
+                    setCategoria(e.target.value)
+                    if (errorCategoria) setErrorCategoria('')
+                  }}
+                >
+                  <option value="" disabled>Selecciona una categoría</option>
+                  {categorias.map((c) => (
+                    <option key={c.id} value={c.id}>{c.nombre}</option>
+                  ))}
+                </select>
+                <span className="error">
+                  <Icon name="info" />
+                  <span className="err-text">{errorCategoria}</span>
+                </span>
+              </div>
+
+              <div className="field">
+                <label htmlFor="p-proveedor">Proveedor</label>
+                <select
+                  className="input"
+                  id="p-proveedor"
+                  value={proveedor}
+                  onChange={(e) => setProveedor(e.target.value)}
+                >
+                  <option value="">Sin proveedor</option>
+                  {proveedores.map((p) => (
+                    <option key={p.id} value={p.id}>{p.nombre}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="field">

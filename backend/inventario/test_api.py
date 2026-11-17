@@ -157,18 +157,20 @@ class TestProductosAPI:
         }, format='json')
         assert resp.status_code == 401
 
-    def test_unidad_medida_invalida_es_rechazada(self, auth_client):
+    def test_unidad_medida_invalida_es_rechazada(self, auth_client, categoria):
         resp = auth_client.post(self.URL, {
             'nombre': 'Café', 'descripcion': '', 'unidad_medida': 'xx',
+            'categoria': str(categoria.id),
             'stock_actual': '1.00', 'stock_minimo': '1.00',
         }, format='json')
         assert resp.status_code == 400
 
-    def test_crear_producto(self, auth_client):
+    def test_crear_producto(self, auth_client, categoria):
         resp = auth_client.post(self.URL, {
             'nombre': 'Lentejas',
             'descripcion': '',
             'unidad_medida': 'kg',
+            'categoria': str(categoria.id),
             'stock_actual': '5.00',
             'stock_minimo': '1.00',
         }, format='json')
@@ -178,7 +180,7 @@ class TestProductosAPI:
 
     def test_lista_solo_muestra_activos(self, auth_client, producto):
         Producto.objects.create(
-            nombre='Inactivo', unidad_medida='und',
+            nombre='Inactivo', unidad_medida='und', categoria=producto.categoria,
             stock_actual=Decimal('0'), stock_minimo=Decimal('0'),
             activo=False,
         )
@@ -191,7 +193,7 @@ class TestProductosAPI:
 
     def test_busqueda_por_q(self, auth_client, producto):
         Producto.objects.create(
-            nombre='Arroz', unidad_medida='kg',
+            nombre='Arroz', unidad_medida='kg', categoria=producto.categoria,
             stock_actual=Decimal('8'), stock_minimo=Decimal('2'),
         )
         resp = auth_client.get(self.URL, {'q': 'arr'})
@@ -224,6 +226,7 @@ class TestProductosAPI:
             'nombre': 'maíz',
             'descripcion': '',
             'unidad_medida': 'kg',
+            'categoria': str(producto.categoria_id),
             'stock_actual': '3.00',
             'stock_minimo': '1.00',
         }, format='json')
@@ -325,7 +328,7 @@ class TestMovimientosAPI:
 
     def test_filtro_por_producto_id(self, auth_client, producto):
         otro = Producto.objects.create(
-            nombre='Fríjol', unidad_medida='kg',
+            nombre='Fríjol', unidad_medida='kg', categoria=producto.categoria,
             stock_actual=Decimal('10'), stock_minimo=Decimal('2'),
         )
         auth_client.post(self.URL, {
@@ -438,14 +441,14 @@ class TestDashboardAPI:
         resp = api_client.get(self.URL)
         assert resp.status_code == 401
 
-    def test_totales_y_stock_bajo(self, auth_client, usuario):
+    def test_totales_y_stock_bajo(self, auth_client, usuario, categoria):
         # Un producto con stock bajo y otro con stock suficiente.
         bajo = Producto.objects.create(
-            nombre='Sal', unidad_medida='kg',
+            nombre='Sal', unidad_medida='kg', categoria=categoria,
             stock_actual=Decimal('1'), stock_minimo=Decimal('5'),
         )
         Producto.objects.create(
-            nombre='Azúcar', unidad_medida='kg',
+            nombre='Azúcar', unidad_medida='kg', categoria=categoria,
             stock_actual=Decimal('20'), stock_minimo=Decimal('5'),
         )
         Movimiento.objects.create(

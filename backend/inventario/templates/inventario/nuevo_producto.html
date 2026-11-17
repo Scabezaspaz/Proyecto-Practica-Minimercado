@@ -297,6 +297,35 @@
 
             <div class="campo">
 
+                <label for="{{ formulario.categoria.id_for_label }}">
+                    Categoría *
+                </label>
+
+                {{ formulario.categoria }}
+
+                {% if formulario.categoria.errors %}
+
+                    <div class="errores">
+
+                        <ul>
+
+                            {% for error in formulario.categoria.errors %}
+
+                                <li>{{ error }}</li>
+
+                            {% endfor %}
+
+                        </ul>
+
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+            <div class="campo">
+
                 <label for="{{ formulario.unidad_medida.id_for_label }}">
                     Unidad de medida *
                 </label>

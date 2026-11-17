@@ -8,6 +8,7 @@ export type IconName =
   | 'menu' | 'x' | 'chevron-down' | 'check' | 'alert-triangle' | 'info'
   | 'calendar' | 'filter' | 'leaf' | 'refresh' | 'lock' | 'mail'
   | 'arrow-right' | 'external-link' | 'monitor' | 'code' | 'layers' | 'shield'
+  | 'truck' | 'cart'
 
 const PATHS: Record<IconName, string> = {
   dashboard: '<rect x="3.5" y="3.5" width="7.2" height="7.2" rx="1.6"/><rect x="13.3" y="3.5" width="7.2" height="7.2" rx="1.6"/><rect x="3.5" y="13.3" width="7.2" height="7.2" rx="1.6"/><rect x="13.3" y="13.3" width="7.2" height="7.2" rx="1.6"/>',
@@ -40,6 +41,8 @@ const PATHS: Record<IconName, string> = {
   monitor: '<rect x="3" y="4.5" width="18" height="12.5" rx="2"/><path d="M8 21h8M12 17v4"/>',
   code: '<path d="M8.5 8l-4.5 4 4.5 4M15.5 8l4.5 4-4.5 4"/>',
   layers: '<path d="M12 4l9 5-9 5-9-5 9-5z"/><path d="M3 14.5l9 5 9-5"/>',
+  cart: '<path d="M3.5 4.5h2.2l2.1 10.2h10.4l1.8-7.2H6.6"/><circle cx="9.2" cy="18.8" r="1.5"/><circle cx="16.8" cy="18.8" r="1.5"/>',
+  truck: '<path d="M3.5 6.5h10v9.5h-10z"/><path d="M13.5 10h3.6l3.4 3.4V16h-7"/><circle cx="7.2" cy="17.6" r="1.7"/><circle cx="16.8" cy="17.6" r="1.7"/>',
   shield: '<path d="M12 3.5l7 2.8v5.4c0 4.2-2.9 7.4-7 8.8-4.1-1.4-7-4.6-7-8.8V6.3l7-2.8z"/>',
 }
 

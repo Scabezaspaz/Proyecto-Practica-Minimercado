@@ -7,10 +7,21 @@ export interface ProductoInput {
   unidad_medida: string
   stock_minimo: string
   stock_actual?: string // solo se envía al crear
+  categoria: string
+  proveedor: string | null
 }
 
-export async function getProductos(q = ''): Promise<Producto[]> {
-  const res = await api.get<Producto[]>('/productos/', { params: q ? { q } : {} })
+export interface FiltrosProducto {
+  categoria?: string
+  proveedor?: string
+}
+
+export async function getProductos(q = '', filtros: FiltrosProducto = {}): Promise<Producto[]> {
+  const params: Record<string, string> = {}
+  if (q) params.q = q
+  if (filtros.categoria) params.categoria = filtros.categoria
+  if (filtros.proveedor) params.proveedor = filtros.proveedor
+  const res = await api.get<Producto[]>('/productos/', { params })
   return res.data
 }
 
@@ -37,19 +48,5 @@ export async function deleteProducto(id: string): Promise<void> {
   await api.delete(`/productos/${id}/`)
 }
 
-// Convierte un error de la API (DRF) en un mensaje legible.
-export function apiErrorMessage(err: unknown, fallback = 'Ocurrió un error.'): string {
-  const anyErr = err as { response?: { data?: unknown } }
-  const data = anyErr?.response?.data
-  if (!data) return fallback
-  if (typeof data === 'string') return data
-  if (typeof data === 'object') {
-    const parts: string[] = []
-    for (const value of Object.values(data as Record<string, unknown>)) {
-      if (Array.isArray(value)) parts.push(...value.map(String))
-      else if (value) parts.push(String(value))
-    }
-    if (parts.length) return parts.join(' ')
-  }
-  return fallback
-}
+// Se re-exporta para no romper los imports existentes.
+export { apiErrorMessage } from './errors'
