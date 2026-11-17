@@ -36,11 +36,12 @@ def auth_client(api_client, usuario):
 
 
 @pytest.fixture
-def producto(db):
-    """Producto de prueba con stock inicial de 10 kg."""
+def producto(db, categoria):
+    """Producto de prueba con stock inicial de 10 kg (categoría Granos)."""
     return Producto.objects.create(
         nombre='Maíz',
         unidad_medida='kg',
+        categoria=categoria,
         stock_actual=Decimal('10.00'),
         stock_minimo=Decimal('2.00'),
     )

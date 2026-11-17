@@ -221,12 +221,23 @@ class TestProductoRelaciones:
         assert resp.data['categoria_nombre'] == 'Granos'
         assert resp.data['proveedor_nombre'] == 'Finca La Esperanza'
 
-    def test_categoria_y_proveedor_son_opcionales(self, auth_client):
+    def test_categoria_es_obligatoria(self, auth_client):
         resp = auth_client.post(self.URL, self.datos(), format='json')
 
+        assert resp.status_code == 400
+        assert resp.data['categoria'] == ['Selecciona una categoría.']
+
+    def test_categoria_no_puede_ser_nula(self, auth_client, producto):
+        resp = auth_client.patch(f'{self.URL}{producto.id}/', {'categoria': None}, format='json')
+
+        assert resp.status_code == 400
+        assert 'categoria' in resp.data
+
+    def test_proveedor_es_opcional(self, auth_client, categoria):
+        resp = auth_client.post(self.URL, self.datos(categoria=str(categoria.id)), format='json')
+
         assert resp.status_code == 201
-        assert resp.data['categoria'] is None
-        assert resp.data['categoria_nombre'] is None
+        assert resp.data['proveedor'] is None
         assert resp.data['proveedor_nombre'] is None
 
     def test_no_acepta_categoria_inactiva(self, auth_client, categoria):
@@ -239,32 +250,32 @@ class TestProductoRelaciones:
         assert resp.status_code == 400
         assert 'categoria' in resp.data
 
-    def test_no_acepta_proveedor_inexistente(self, auth_client):
+    def test_no_acepta_proveedor_inexistente(self, auth_client, categoria):
         resp = auth_client.post(self.URL, self.datos(
+            categoria=str(categoria.id),
             proveedor='00000000-0000-0000-0000-000000000000',
         ), format='json')
 
         assert resp.status_code == 400
         assert 'proveedor' in resp.data
 
-    def test_cambiar_y_quitar_categoria(self, auth_client, producto, categoria):
+    def test_cambiar_categoria_y_quitar_proveedor(self, auth_client, producto, proveedor):
         otra = Categoria.objects.create(nombre='Cereales')
         url = f'{self.URL}{producto.id}/'
 
-        auth_client.patch(url, {'categoria': str(categoria.id)}, format='json')
-        cambio = auth_client.patch(url, {'categoria': str(otra.id)}, format='json')
-        quitar = auth_client.patch(url, {'categoria': None}, format='json')
+        cambio = auth_client.patch(url, {'categoria': str(otra.id), 'proveedor': str(proveedor.id)}, format='json')
+        quitar = auth_client.patch(url, {'proveedor': None}, format='json')
 
         assert cambio.data['categoria_nombre'] == 'Cereales'
         assert quitar.status_code == 200
-        assert quitar.data['categoria'] is None
+        assert quitar.data['proveedor'] is None
 
     def test_filtrar_productos_por_categoria_y_proveedor(self, auth_client, producto, categoria, proveedor):
         producto.categoria = categoria
         producto.proveedor = proveedor
         producto.save()
         Producto.objects.create(
-            nombre='Sal', unidad_medida='kg',
+            nombre='Sal', unidad_medida='kg', categoria=Categoria.objects.create(nombre='Condimentos'),
             stock_actual=Decimal('1'), stock_minimo=Decimal('0'),
         )
 

@@ -5,17 +5,21 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import Producto, Movimiento
+from .models import Categoria, Movimiento, Producto
 
 User = get_user_model()
 
 
 class ProductoModelTest(TestCase):
 
+    def setUp(self):
+        self.categoria = Categoria.objects.create(nombre='Granos')
+
     def test_nombre_se_normaliza(self):
         producto = Producto(
             nombre='  Arroz  ',
             unidad_medida='kg',
+            categoria=self.categoria,
             stock_actual=Decimal('10.00'),
             stock_minimo=Decimal('2.00'),
         )
@@ -28,6 +32,7 @@ class ProductoModelTest(TestCase):
         Producto.objects.create(
             nombre='Maíz',
             unidad_medida='kg',
+            categoria=self.categoria,
             stock_actual=Decimal('10.00'),
             stock_minimo=Decimal('2.00'),
         )
@@ -35,12 +40,26 @@ class ProductoModelTest(TestCase):
         duplicado = Producto(
             nombre='maíz',
             unidad_medida='kg',
+            categoria=self.categoria,
             stock_actual=Decimal('5.00'),
             stock_minimo=Decimal('1.00'),
         )
 
         with self.assertRaises(ValidationError):
             duplicado.full_clean()
+
+    def test_categoria_es_obligatoria(self):
+        producto = Producto(
+            nombre='Sin categoría',
+            unidad_medida='und',
+            stock_actual=Decimal('1.00'),
+            stock_minimo=Decimal('0.00'),
+        )
+
+        with self.assertRaises(ValidationError) as ctx:
+            producto.full_clean()
+
+        self.assertIn('categoria', ctx.exception.message_dict)
 
 
 class MovimientoModelTest(TestCase):
@@ -54,6 +73,7 @@ class MovimientoModelTest(TestCase):
         self.producto = Producto.objects.create(
             nombre='Maíz',
             unidad_medida='kg',
+            categoria=Categoria.objects.create(nombre='Granos'),
             stock_actual=Decimal('10.00'),
             stock_minimo=Decimal('2.00'),
         )

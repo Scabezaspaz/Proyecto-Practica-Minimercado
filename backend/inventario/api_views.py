@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import models
+from django.utils.dateparse import parse_date
 
 from rest_framework import mixins, viewsets
 from rest_framework.exceptions import ValidationError as DRFValidationError
@@ -11,9 +12,11 @@ from rest_framework.views import APIView
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .models import Categoria, Movimiento, Producto, Proveedor
+from .models import Categoria, Compra, Movimiento, Producto, Proveedor
 from .serializers import (
     CategoriaSerializer,
+    CompraCreateSerializer,
+    CompraSerializer,
     ProveedorSerializer,
     ProductoSerializer,
     MovimientoSerializer,
@@ -160,7 +163,8 @@ class MovimientoViewSet(mixins.ListModelMixin,
     def get_queryset(self):
         queryset = Movimiento.objects.select_related(
             'producto',
-            'usuario'
+            'usuario',
+            'detalle_compra'
         )
 
         producto = self.request.query_params.get('producto', '').strip()
@@ -197,6 +201,62 @@ class MovimientoViewSet(mixins.ListModelMixin,
             raise traducir_error_validacion(error)
 
 
+class CompraViewSet(mixins.ListModelMixin,
+                    mixins.RetrieveModelMixin,
+                    mixins.CreateModelMixin,
+                    viewsets.GenericViewSet):
+    """
+    API de compras: listar, ver y registrar.
+    Las compras son inmutables (no se editan ni se eliminan) porque ya
+    generaron entradas de inventario.
+    Filtros: ?q= (factura o proveedor) &proveedor=<id> &desde= &hasta= (AAAA-MM-DD)
+    """
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return CompraCreateSerializer
+        return CompraSerializer
+
+    def get_queryset(self):
+        queryset = (
+            Compra.objects
+            .select_related('proveedor', 'usuario')
+            .prefetch_related('detalles__producto')
+        )
+
+        params = self.request.query_params
+        consulta = params.get('q', '').strip()
+        proveedor = params.get('proveedor', '').strip()
+        desde = parse_date(params.get('desde', '').strip() or '')
+        hasta = parse_date(params.get('hasta', '').strip() or '')
+
+        if consulta:
+            queryset = queryset.filter(
+                models.Q(numero_factura__icontains=consulta)
+                | models.Q(proveedor__nombre__icontains=consulta)
+            )
+
+        if proveedor:
+            try:
+                queryset = queryset.filter(proveedor_id=proveedor)
+            except DjangoValidationError:
+                return queryset.none()
+
+        if desde:
+            queryset = queryset.filter(fecha_compra__gte=desde)
+
+        if hasta:
+            queryset = queryset.filter(fecha_compra__lte=hasta)
+
+        return queryset.order_by('-fecha_compra', '-fecha_registro')
+
+    def perform_create(self, serializer):
+        try:
+            serializer.save()
+        except DjangoValidationError as error:
+            raise traducir_error_validacion(error)
+
+
 class DashboardAPIView(APIView):
     """
     API del panel principal: totales, alertas de stock bajo
@@ -212,7 +272,7 @@ class DashboardAPIView(APIView):
 
         ultimos_movimientos = (
             Movimiento.objects
-            .select_related('producto', 'usuario')
+            .select_related('producto', 'usuario', 'detalle_compra')
             .order_by('-fecha_movimiento')[:5]
         )
 

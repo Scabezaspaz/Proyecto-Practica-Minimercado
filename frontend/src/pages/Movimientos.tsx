@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import Icon from '../components/Icon'
 import MovimientoModal from '../components/MovimientoModal'
 import Pagination from '../components/Pagination'
@@ -150,7 +151,10 @@ export default function Movimientos() {
                     </td>
                     <td className="num">{Number(m.cantidad)}</td>
                     <td>{m.usuario_nombre}</td>
-                    <td>{m.observacion ? m.observacion : <span style={{ color: 'var(--subtle)' }}>—</span>}</td>
+                    <td>
+                      {m.observacion ? m.observacion : <span style={{ color: 'var(--subtle)' }}>—</span>}
+                      {m.compra && <Link className="td-sub" to={`/compras/${m.compra}`}>Ver compra</Link>}
+                    </td>
                   </tr>
                 ))}
               </tbody>

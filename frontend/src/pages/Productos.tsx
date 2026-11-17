@@ -204,9 +204,7 @@ export default function Productos() {
                         {p.descripcion && <span className="td-sub">{p.descripcion}</span>}
                       </td>
                       <td>
-                        {p.categoria_nombre
-                          ? <span className="badge badge-neutral badge-no-dot">{p.categoria_nombre}</span>
-                          : <span className="hint">Sin categoría</span>}
+                        <span className="badge badge-neutral badge-no-dot">{p.categoria_nombre}</span>
                         {p.proveedor_nombre && <span className="td-sub">{p.proveedor_nombre}</span>}
                       </td>
                       <td>{p.unidad_medida_display}</td>

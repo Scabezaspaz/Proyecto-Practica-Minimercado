@@ -145,7 +145,7 @@ export default function ProductoDetalle() {
               <div className="td-strong" style={{ fontSize: 18 }}>{producto.nombre}</div>
               {producto.descripcion && <div className="td-sub">{producto.descripcion}</div>}
               <div className="td-sub" style={{ marginTop: 4 }}>
-                Categoría: <b>{producto.categoria_nombre ?? 'Sin categoría'}</b>
+                Categoría: <b>{producto.categoria_nombre}</b>
                 {' · '}
                 Proveedor: <b>{producto.proveedor_nombre ?? 'Sin proveedor'}</b>
               </div>

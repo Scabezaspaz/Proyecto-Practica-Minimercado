@@ -119,6 +119,10 @@ class Categoria(EntidadConProductos):
 
     nombre_entidad = 'categoría'
 
+    # Categoría por defecto para los productos registrados antes de que
+    # la categoría fuera obligatoria.
+    NOMBRE_GENERAL = 'General'
+
     nombre = models.CharField(
         max_length=80
     )
@@ -228,16 +232,14 @@ class Producto(EntidadActivable):
         choices=UNIDADES_MEDIDA
     )
 
-    # Un producto pertenece a una sola categoría; una categoría agrupa
-    # muchos productos. Es opcional para no romper los productos que
-    # ya existían antes de este módulo. PROTECT evita borrar físicamente
-    # una categoría que tenga productos.
+    # Un producto pertenece a una sola categoría (obligatoria); una
+    # categoría agrupa muchos productos. PROTECT evita borrar físicamente
+    # una categoría que tenga productos. Los productos que existían antes
+    # de este módulo se asignaron a la categoría "General" (migración 0011).
     categoria = models.ForeignKey(
         Categoria,
         on_delete=models.PROTECT,
-        related_name='productos',
-        null=True,
-        blank=True
+        related_name='productos'
     )
 
     # Un producto tiene un solo proveedor; un proveedor surte muchos
@@ -435,3 +437,187 @@ class Movimiento(models.Model):
         raise ValidationError(
             'Los movimientos existentes no se pueden eliminar.'
         )
+
+# ---------------------------------------------------------------------------
+# Compras: Proveedor (1) ---- (N) Compra (1) ---- (N) DetalleCompra
+# ---------------------------------------------------------------------------
+class RegistroInmutableMixin:
+    """
+    Registros históricos que no se modifican ni se eliminan una vez
+    creados (igual que los movimientos), para conservar la trazabilidad.
+    """
+
+    mensaje_inmutable = 'Los registros existentes no se pueden modificar.'
+
+    def save(self, *args, **kwargs):
+        if not self._state.adding:
+            raise ValidationError(self.mensaje_inmutable)
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        raise ValidationError(self.mensaje_inmutable)
+
+
+class Compra(RegistroInmutableMixin, models.Model):
+    """
+    Compra realizada a un proveedor. Al registrarse genera una ENTRADA
+    de inventario por cada producto de su detalle (ver services.py).
+    """
+
+    mensaje_inmutable = 'Las compras registradas no se pueden modificar ni eliminar.'
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+
+    proveedor = models.ForeignKey(
+        Proveedor,
+        on_delete=models.PROTECT,
+        related_name='compras'
+    )
+
+    usuario = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name='compras'
+    )
+
+    numero_factura = models.CharField(
+        max_length=50,
+        blank=True
+    )
+
+    fecha_compra = models.DateField(
+        db_index=True
+    )
+
+    fecha_pago = models.DateField(
+        null=True,
+        blank=True
+    )
+
+    banco_pago = models.CharField(
+        max_length=80,
+        blank=True
+    )
+
+    observacion = models.TextField(
+        blank=True
+    )
+
+    # Suma de los subtotales del detalle. Se guarda (desnormalizado)
+    # porque la compra es inmutable y facilita reportes y consultas.
+    total = models.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        validators=[
+            MinValueValidator(Decimal('0.00'))
+        ]
+    )
+
+    fecha_registro = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True
+    )
+
+    class Meta:
+        ordering = ['-fecha_compra', '-fecha_registro']
+        constraints = [
+            # Un proveedor no puede tener dos compras con la misma factura.
+            models.UniqueConstraint(
+                fields=['proveedor', 'numero_factura'],
+                condition=~models.Q(numero_factura=''),
+                name='compra_factura_unica_por_proveedor',
+            ),
+            models.CheckConstraint(
+                condition=models.Q(total__gte=0),
+                name='compra_total_no_negativo',
+            ),
+        ]
+
+    def __str__(self):
+        factura = f' · Factura {self.numero_factura}' if self.numero_factura else ''
+        return f'Compra a {self.proveedor.nombre}{factura}'
+
+
+class DetalleCompra(RegistroInmutableMixin, models.Model):
+    """
+    Línea de una compra: un producto, su cantidad y su precio unitario.
+    Queda enlazada al movimiento de ENTRADA que generó en el inventario.
+    """
+
+    mensaje_inmutable = 'El detalle de una compra no se puede modificar ni eliminar.'
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+
+    compra = models.ForeignKey(
+        Compra,
+        on_delete=models.CASCADE,
+        related_name='detalles'
+    )
+
+    producto = models.ForeignKey(
+        Producto,
+        on_delete=models.PROTECT,
+        related_name='detalles_compra'
+    )
+
+    cantidad = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        validators=[
+            MinValueValidator(Decimal('0.01'))
+        ]
+    )
+
+    precio_unitario = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        validators=[
+            MinValueValidator(Decimal('0.00'))
+        ]
+    )
+
+    subtotal = models.DecimalField(
+        max_digits=14,
+        decimal_places=2
+    )
+
+    movimiento = models.OneToOneField(
+        Movimiento,
+        on_delete=models.PROTECT,
+        related_name='detalle_compra'
+    )
+
+    class Meta:
+        verbose_name = 'detalle de compra'
+        verbose_name_plural = 'detalles de compra'
+        constraints = [
+            # Cada producto aparece una sola vez por compra.
+            models.UniqueConstraint(
+                fields=['compra', 'producto'],
+                name='detalle_compra_producto_unico',
+            ),
+            models.CheckConstraint(
+                condition=models.Q(cantidad__gt=0),
+                name='detalle_compra_cantidad_positiva',
+            ),
+            models.CheckConstraint(
+                condition=models.Q(precio_unitario__gte=0),
+                name='detalle_compra_precio_no_negativo',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.producto.nombre} x {self.cantidad}'
+
+    @staticmethod
+    def calcular_subtotal(cantidad, precio_unitario):
+        return (cantidad * precio_unitario).quantize(Decimal('0.01'))

@@ -9,6 +9,7 @@ const ITEMS: NavItem[] = [
   { to: '/productos', icon: 'box', label: 'Productos' },
   { to: '/categorias', icon: 'layers', label: 'Categorías' },
   { to: '/proveedores', icon: 'truck', label: 'Proveedores' },
+  { to: '/compras', icon: 'cart', label: 'Compras' },
   { to: '/movimientos', icon: 'clock', label: 'Movimientos' },
   { to: '/reportes', icon: 'calendar', label: 'Reportes' },
 ]

@@ -8,6 +8,8 @@ const TITLES: Record<string, string> = {
   '/productos': 'Productos',
   '/categorias': 'Categorías',
   '/proveedores': 'Proveedores',
+  '/compras': 'Compras',
+  '/compras/nueva': 'Nueva compra',
   '/movimientos': 'Movimientos',
   '/reportes': 'Reportes',
 }
@@ -15,7 +17,9 @@ const TITLES: Record<string, string> = {
 export default function AppLayout() {
   const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
-  const title = TITLES[location.pathname] ?? 'Mini Mercado Ecológico'
+  const title =
+    TITLES[location.pathname] ??
+    (location.pathname.startsWith('/compras/') ? 'Detalle de compra' : 'Mini Mercado Ecológico')
 
   return (
     <>

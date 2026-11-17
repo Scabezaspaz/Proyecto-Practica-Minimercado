@@ -1,9 +1,18 @@
 from django import forms
 
-from .models import Movimiento, Producto
+from .models import Categoria, Movimiento, Producto
 
 
-class ProductoForm(forms.ModelForm):
+class CategoriaActivaMixin:
+    """Limita el desplegable de categoría a las categorías activas."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['categoria'].queryset = Categoria.objects.filter(activo=True)
+        self.fields['categoria'].empty_label = 'Selecciona una categoría'
+
+
+class ProductoForm(CategoriaActivaMixin, forms.ModelForm):
 
     class Meta:
         model = Producto
@@ -12,6 +21,7 @@ class ProductoForm(forms.ModelForm):
             'nombre',
             'descripcion',
             'unidad_medida',
+            'categoria',
             'stock_actual',
             'stock_minimo',
         ]
@@ -49,7 +59,7 @@ class ProductoForm(forms.ModelForm):
         }
 
 
-class ProductoEditarForm(forms.ModelForm):
+class ProductoEditarForm(CategoriaActivaMixin, forms.ModelForm):
 
     class Meta:
         model = Producto
@@ -58,6 +68,7 @@ class ProductoEditarForm(forms.ModelForm):
             'nombre',
             'descripcion',
             'unidad_medida',
+            'categoria',
             'stock_minimo',
         ]
 

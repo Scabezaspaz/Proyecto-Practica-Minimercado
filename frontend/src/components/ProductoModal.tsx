@@ -36,6 +36,7 @@ export default function ProductoModal({ producto, onClose, onSaved }: Props) {
   const [stockMinimo, setStockMinimo] = useState('0')
   const [saving, setSaving] = useState(false)
   const [errorNombre, setErrorNombre] = useState('')
+  const [errorCategoria, setErrorCategoria] = useState('')
   const [categoria, setCategoria] = useState('')
   const [proveedor, setProveedor] = useState('')
   const [categorias, setCategorias] = useState<Categoria[]>([])
@@ -54,7 +55,7 @@ export default function ProductoModal({ producto, onClose, onSaved }: Props) {
       setUnidad(producto.unidad_medida)
       setStockActual(String(producto.stock_actual))
       setStockMinimo(String(producto.stock_minimo))
-      setCategoria(producto.categoria ?? '')
+      setCategoria(producto.categoria)
       setProveedor(producto.proveedor ?? '')
     }
     document.body.classList.add('modal-open')
@@ -67,6 +68,10 @@ export default function ProductoModal({ producto, onClose, onSaved }: Props) {
       setErrorNombre('El nombre es obligatorio.')
       return
     }
+    if (!categoria) {
+      setErrorCategoria('Selecciona una categoría.')
+      return
+    }
 
     setSaving(true)
     try {
@@ -76,7 +81,7 @@ export default function ProductoModal({ producto, onClose, onSaved }: Props) {
           descripcion: descripcion.trim(),
           unidad_medida: unidad,
           stock_minimo: stockMinimo,
-          categoria: categoria || null,
+          categoria,
           proveedor: proveedor || null,
         })
         toast('Producto actualizado correctamente.', 'success')
@@ -87,7 +92,7 @@ export default function ProductoModal({ producto, onClose, onSaved }: Props) {
           unidad_medida: unidad,
           stock_actual: stockActual,
           stock_minimo: stockMinimo,
-          categoria: categoria || null,
+          categoria,
           proveedor: proveedor || null,
         }
         await createProducto(data)
@@ -141,19 +146,26 @@ export default function ProductoModal({ producto, onClose, onSaved }: Props) {
                 </span>
               </div>
 
-              <div className="field">
+              <div className={`field ${errorCategoria ? 'invalid' : ''}`}>
                 <label htmlFor="p-categoria">Categoría</label>
                 <select
                   className="input"
                   id="p-categoria"
                   value={categoria}
-                  onChange={(e) => setCategoria(e.target.value)}
+                  onChange={(e) => {
+                    setCategoria(e.target.value)
+                    if (errorCategoria) setErrorCategoria('')
+                  }}
                 >
-                  <option value="">Sin categoría</option>
+                  <option value="" disabled>Selecciona una categoría</option>
                   {categorias.map((c) => (
                     <option key={c.id} value={c.id}>{c.nombre}</option>
                   ))}
                 </select>
+                <span className="error">
+                  <Icon name="info" />
+                  <span className="err-text">{errorCategoria}</span>
+                </span>
               </div>
 
               <div className="field">

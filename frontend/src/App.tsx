@@ -9,6 +9,9 @@ import ReporteProducto from './pages/ReporteProducto'
 import Movimientos from './pages/Movimientos'
 import Categorias from './pages/Categorias'
 import Proveedores from './pages/Proveedores'
+import Compras from './pages/Compras'
+import NuevaCompra from './pages/NuevaCompra'
+import CompraDetalle from './pages/CompraDetalle'
 import Reportes from './pages/Reportes'
 
 function App() {
@@ -29,6 +32,9 @@ function App() {
         <Route path="/productos/:id/reporte" element={<ReporteProducto />} />
         <Route path="/categorias" element={<Categorias />} />
         <Route path="/proveedores" element={<Proveedores />} />
+        <Route path="/compras" element={<Compras />} />
+        <Route path="/compras/nueva" element={<NuevaCompra />} />
+        <Route path="/compras/:id" element={<CompraDetalle />} />
         <Route path="/movimientos" element={<Movimientos />} />
         <Route path="/reportes" element={<Reportes />} />
       </Route>

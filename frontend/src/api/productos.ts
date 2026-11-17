@@ -7,7 +7,7 @@ export interface ProductoInput {
   unidad_medida: string
   stock_minimo: string
   stock_actual?: string // solo se envía al crear
-  categoria: string | null
+  categoria: string
   proveedor: string | null
 }
 
