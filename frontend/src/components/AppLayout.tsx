@@ -6,6 +6,8 @@ import Topbar from './Topbar'
 const TITLES: Record<string, string> = {
   '/': 'Panel de control',
   '/productos': 'Productos',
+  '/categorias': 'Categorías',
+  '/proveedores': 'Proveedores',
   '/movimientos': 'Movimientos',
   '/reportes': 'Reportes',
 }

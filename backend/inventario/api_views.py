@@ -11,8 +11,10 @@ from rest_framework.views import APIView
 
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .models import Producto, Movimiento
+from .models import Categoria, Movimiento, Producto, Proveedor
 from .serializers import (
+    CategoriaSerializer,
+    ProveedorSerializer,
     ProductoSerializer,
     MovimientoSerializer,
     EmailTokenObtainSerializer,
@@ -28,28 +30,119 @@ class EmailTokenObtainPairView(TokenObtainPairView):
 User = get_user_model()
 
 
-class ProductoViewSet(viewsets.ModelViewSet):
+def traducir_error_validacion(error):
     """
-    API de productos: listar, crear, ver, editar y desactivar.
+    Convierte un ValidationError de Django (reglas del modelo) en uno de
+    DRF, para que la API responda 400 con un mensaje legible.
+    """
+    if hasattr(error, 'message_dict'):
+        return DRFValidationError(error.message_dict)
+    return DRFValidationError(error.messages)
+
+
+class CatalogoViewSet(viewsets.ModelViewSet):
+    """
+    Base reutilizable para los CRUD del catálogo (productos, categorías,
+    proveedores):
+    - Lista solo registros activos.
+    - Búsqueda con ?q=texto sobre `campos_busqueda`.
+    - Borrado lógico: DELETE desactiva el registro (si el modelo lo permite).
+
+    Las subclases solo declaran su modelo/serializer y, si lo necesitan,
+    extienden `filtrar_queryset` (principio abierto/cerrado).
+    """
+
+    modelo = None
+    campos_busqueda = ('nombre',)
+    orden = ('nombre',)
+
+    def get_queryset(self):
+        queryset = self.modelo.objects.filter(activo=True)
+        queryset = self.filtrar_por_busqueda(queryset)
+        queryset = self.filtrar_queryset(queryset)
+        return queryset.order_by(*self.orden)
+
+    def filtrar_por_busqueda(self, queryset):
+        consulta = self.request.query_params.get('q', '').strip()
+
+        if not consulta:
+            return queryset
+
+        condicion = models.Q()
+        for campo in self.campos_busqueda:
+            condicion |= models.Q(**{f'{campo}__icontains': consulta})
+
+        return queryset.filter(condicion)
+
+    def filtrar_queryset(self, queryset):
+        """Punto de extensión para filtros propios de cada recurso."""
+        return queryset
+
+    def perform_destroy(self, instance):
+        try:
+            instance.desactivar()
+        except DjangoValidationError as error:
+            raise traducir_error_validacion(error)
+
+
+class EntidadConProductosViewSet(CatalogoViewSet):
+    """Agrega el conteo de productos activos sin consultas N+1."""
+
+    def filtrar_queryset(self, queryset):
+        return queryset.annotate(
+            total_productos=models.Count(
+                'productos',
+                filter=models.Q(productos__activo=True)
+            )
+        )
+
+
+class CategoriaViewSet(EntidadConProductosViewSet):
+    """
+    API de categorías: listar, crear, ver, editar y desactivar.
     Soporta búsqueda con ?q=texto
     """
 
+    modelo = Categoria
+    serializer_class = CategoriaSerializer
+
+
+class ProveedorViewSet(EntidadConProductosViewSet):
+    """
+    API de proveedores: listar, crear, ver, editar y desactivar.
+    Soporta búsqueda con ?q=texto (nombre, NIT o contacto)
+    """
+
+    modelo = Proveedor
+    serializer_class = ProveedorSerializer
+    campos_busqueda = ('nombre', 'nit', 'contacto')
+
+
+class ProductoViewSet(CatalogoViewSet):
+    """
+    API de productos: listar, crear, ver, editar y desactivar.
+    Soporta búsqueda con ?q=texto y filtros ?categoria=<id> &proveedor=<id>
+    """
+
+    modelo = Producto
     serializer_class = ProductoSerializer
 
-    def get_queryset(self):
-        queryset = Producto.objects.filter(activo=True)
+    def filtrar_queryset(self, queryset):
+        queryset = queryset.select_related('categoria', 'proveedor')
 
-        consulta = self.request.query_params.get('q', '').strip()
+        categoria = self.request.query_params.get('categoria', '').strip()
+        proveedor = self.request.query_params.get('proveedor', '').strip()
 
-        if consulta:
-            queryset = queryset.filter(nombre__icontains=consulta)
+        try:
+            if categoria:
+                queryset = queryset.filter(categoria_id=categoria)
+            if proveedor:
+                queryset = queryset.filter(proveedor_id=proveedor)
+        except DjangoValidationError:
+            # Id con formato inválido (no es UUID): no hay coincidencias.
+            return queryset.none()
 
-        return queryset.order_by('nombre')
-
-    def perform_destroy(self, instance):
-        # Borrado lógico: el producto se desactiva, no se elimina.
-        instance.activo = False
-        instance.save(update_fields=['activo'])
+        return queryset
 
 
 class MovimientoViewSet(mixins.ListModelMixin,
@@ -101,9 +194,7 @@ class MovimientoViewSet(mixins.ListModelMixin,
         try:
             serializer.save(usuario=self.request.user)
         except DjangoValidationError as error:
-            if hasattr(error, 'message_dict'):
-                raise DRFValidationError(error.message_dict)
-            raise DRFValidationError(error.messages)
+            raise traducir_error_validacion(error)
 
 
 class DashboardAPIView(APIView):

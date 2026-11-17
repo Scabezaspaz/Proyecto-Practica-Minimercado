@@ -1,7 +1,68 @@
 from django.contrib import admin
 from django.utils import timezone
 
-from .models import Producto, Movimiento
+from .models import Categoria, Movimiento, Producto, Proveedor
+
+
+class ProductosActivosMixin:
+    """Columna con el número de productos activos asociados."""
+
+    @admin.display(description='Productos activos')
+    def total_productos(self, obj):
+        return obj.productos_activos().count()
+
+
+@admin.register(Categoria)
+class CategoriaAdmin(ProductosActivosMixin, admin.ModelAdmin):
+
+    list_display = (
+        'nombre',
+        'total_productos',
+        'activo',
+        'fecha_creacion',
+    )
+
+    list_filter = (
+        'activo',
+    )
+
+    search_fields = (
+        'nombre',
+        'descripcion',
+    )
+
+    ordering = (
+        'nombre',
+    )
+
+
+@admin.register(Proveedor)
+class ProveedorAdmin(ProductosActivosMixin, admin.ModelAdmin):
+
+    list_display = (
+        'nombre',
+        'nit',
+        'contacto',
+        'telefono',
+        'correo',
+        'total_productos',
+        'activo',
+    )
+
+    list_filter = (
+        'activo',
+    )
+
+    search_fields = (
+        'nombre',
+        'nit',
+        'contacto',
+        'correo',
+    )
+
+    ordering = (
+        'nombre',
+    )
 
 
 @admin.register(Producto)
@@ -9,6 +70,8 @@ class ProductoAdmin(admin.ModelAdmin):
 
     list_display = (
         'nombre',
+        'categoria',
+        'proveedor',
         'unidad_medida',
         'stock_actual',
         'stock_minimo',
@@ -20,6 +83,13 @@ class ProductoAdmin(admin.ModelAdmin):
     list_filter = (
         'activo',
         'unidad_medida',
+        'categoria',
+        'proveedor',
+    )
+
+    list_select_related = (
+        'categoria',
+        'proveedor',
     )
 
     search_fields = (

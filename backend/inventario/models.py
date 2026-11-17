@@ -7,7 +7,204 @@ from django.core.validators import MinValueValidator
 from django.db import models, transaction
 
 
-class Producto(models.Model):
+# ---------------------------------------------------------------------------
+# Base común para las entidades de catálogo (Producto, Categoría, Proveedor)
+# ---------------------------------------------------------------------------
+class EntidadActivable(models.Model):
+    """
+    Modelo abstracto con lo que comparten las entidades del catálogo:
+    identificador UUID, borrado lógico (activo) y fecha de creación.
+
+    También centraliza dos reglas de negocio reutilizables:
+    - Nombre único (sin distinguir mayúsculas) entre registros activos.
+    - Desactivación (borrado lógico) controlada: cada subclase puede
+      impedirla sobrescribiendo `validar_desactivacion` (principio
+      abierto/cerrado: se extiende sin modificar esta clase).
+    """
+
+    # Texto usado en los mensajes de error, ej: "Ya existe un producto…"
+    nombre_entidad = 'registro'
+
+    id = models.UUIDField(
+        primary_key=True,
+        default=uuid.uuid4,
+        editable=False
+    )
+
+    activo = models.BooleanField(
+        default=True
+    )
+
+    fecha_creacion = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return self.nombre
+
+    @classmethod
+    def mensaje_nombre_duplicado(cls):
+        return (
+            f'Ya existe un {cls.nombre_entidad} activo con este nombre.'
+        )
+
+    @classmethod
+    def existe_nombre_activo(cls, nombre, excluir_pk=None):
+        """True si ya hay otro registro activo con ese nombre."""
+        consulta = cls.objects.filter(nombre__iexact=nombre, activo=True)
+
+        if excluir_pk is not None:
+            consulta = consulta.exclude(pk=excluir_pk)
+
+        return consulta.exists()
+
+    def clean(self):
+        super().clean()
+
+        if self.nombre:
+            self.nombre = self.nombre.strip()
+
+        if not self.nombre:
+            return
+
+        if self.existe_nombre_activo(self.nombre, excluir_pk=self.pk):
+            raise ValidationError({
+                'nombre': self.mensaje_nombre_duplicado()
+            })
+
+    def validar_desactivacion(self):
+        """
+        Punto de extensión: las subclases lanzan ValidationError
+        si el registro no puede desactivarse.
+        """
+
+    def desactivar(self):
+        """Borrado lógico: el registro se desactiva, no se elimina."""
+        self.validar_desactivacion()
+        self.activo = False
+        self.save(update_fields=['activo'])
+
+
+class EntidadConProductos(EntidadActivable):
+    """
+    Entidad de la que dependen productos (relación 1 a N).
+    No puede desactivarse mientras tenga productos activos asociados,
+    para conservar la integridad de la información.
+    """
+
+    class Meta:
+        abstract = True
+
+    def productos_activos(self):
+        return self.productos.filter(activo=True)
+
+    def validar_desactivacion(self):
+        total = self.productos_activos().count()
+
+        if total:
+            raise ValidationError(
+                f'No se puede desactivar: tiene {total} '
+                f'producto(s) activo(s) asociado(s). '
+                f'Reasígnalos primero.'
+            )
+
+
+# ---------------------------------------------------------------------------
+# Categoría (1) ---- (N) Producto
+# ---------------------------------------------------------------------------
+class Categoria(EntidadConProductos):
+
+    nombre_entidad = 'categoría'
+
+    nombre = models.CharField(
+        max_length=80
+    )
+
+    descripcion = models.TextField(
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = 'categoría'
+        verbose_name_plural = 'categorías'
+        ordering = ['nombre']
+
+    @classmethod
+    def mensaje_nombre_duplicado(cls):
+        return 'Ya existe una categoría activa con este nombre.'
+
+
+# ---------------------------------------------------------------------------
+# Proveedor (1) ---- (N) Producto
+# ---------------------------------------------------------------------------
+class Proveedor(EntidadConProductos):
+
+    nombre_entidad = 'proveedor'
+
+    nombre = models.CharField(
+        max_length=150
+    )
+
+    # NIT o documento de identificación (opcional).
+    nit = models.CharField(
+        max_length=20,
+        blank=True
+    )
+
+    contacto = models.CharField(
+        max_length=100,
+        blank=True
+    )
+
+    telefono = models.CharField(
+        max_length=20,
+        blank=True
+    )
+
+    correo = models.EmailField(
+        blank=True
+    )
+
+    direccion = models.CharField(
+        max_length=200,
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = 'proveedor'
+        verbose_name_plural = 'proveedores'
+        ordering = ['nombre']
+
+    @classmethod
+    def existe_nit_activo(cls, nit, excluir_pk=None):
+        """True si ya hay otro proveedor activo con ese NIT."""
+        consulta = cls.objects.filter(nit__iexact=nit, activo=True)
+
+        if excluir_pk is not None:
+            consulta = consulta.exclude(pk=excluir_pk)
+
+        return consulta.exists()
+
+    def clean(self):
+        super().clean()
+
+        self.nit = (self.nit or '').strip()
+
+        if self.nit and self.existe_nit_activo(self.nit, excluir_pk=self.pk):
+            raise ValidationError({
+                'nit': 'Ya existe un proveedor activo con este NIT.'
+            })
+
+
+# ---------------------------------------------------------------------------
+# Producto
+# ---------------------------------------------------------------------------
+class Producto(EntidadActivable):
+
+    nombre_entidad = 'producto'
 
     UNIDADES_MEDIDA = [
         ('kg', 'Kilogramo (kg)'),
@@ -17,12 +214,6 @@ class Producto(models.Model):
         ('L', 'Litro (L)'),
         ('ml', 'Mililitro (ml)'),
     ]
-
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
 
     nombre = models.CharField(
         max_length=100
@@ -35,6 +226,28 @@ class Producto(models.Model):
     unidad_medida = models.CharField(
         max_length=10,
         choices=UNIDADES_MEDIDA
+    )
+
+    # Un producto pertenece a una sola categoría; una categoría agrupa
+    # muchos productos. Es opcional para no romper los productos que
+    # ya existían antes de este módulo. PROTECT evita borrar físicamente
+    # una categoría que tenga productos.
+    categoria = models.ForeignKey(
+        Categoria,
+        on_delete=models.PROTECT,
+        related_name='productos',
+        null=True,
+        blank=True
+    )
+
+    # Un producto tiene un solo proveedor; un proveedor surte muchos
+    # productos.
+    proveedor = models.ForeignKey(
+        Proveedor,
+        on_delete=models.PROTECT,
+        related_name='productos',
+        null=True,
+        blank=True
     )
 
     stock_actual = models.DecimalField(
@@ -53,43 +266,20 @@ class Producto(models.Model):
         ]
     )
 
-    activo = models.BooleanField(
-        default=True
-    )
-
-    fecha_creacion = models.DateTimeField(
-        auto_now_add=True
-    )
-
-    def __str__(self):
-        return self.nombre
-
     def clean(self):
         super().clean()
 
-        if self.nombre:
-            self.nombre = self.nombre.strip()
+        # Solo se puede asignar una categoría / proveedor activo.
+        errores = {}
 
-        if not self.nombre:
-            return
+        if self.categoria_id and not self.categoria.activo:
+            errores['categoria'] = 'La categoría seleccionada está inactiva.'
 
-        existe_duplicado = (
-            Producto.objects
-            .filter(
-                nombre__iexact=self.nombre,
-                activo=True
-            )
-            .exclude(pk=self.pk)
-            .exists()
-        )
+        if self.proveedor_id and not self.proveedor.activo:
+            errores['proveedor'] = 'El proveedor seleccionado está inactivo.'
 
-        if existe_duplicado:
-            raise ValidationError({
-                'nombre': (
-                    'Ya existe un producto activo '
-                    'con este nombre.'
-                )
-            })
+        if errores:
+            raise ValidationError(errores)
 
 
 class Movimiento(models.Model):

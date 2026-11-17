@@ -4,6 +4,8 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .api_views import (
+    CategoriaViewSet,
+    ProveedorViewSet,
     ProductoViewSet,
     MovimientoViewSet,
     DashboardAPIView,
@@ -16,6 +18,8 @@ from .api_views import (
 router = DefaultRouter()
 router.register('productos', ProductoViewSet, basename='producto')
 router.register('movimientos', MovimientoViewSet, basename='movimiento')
+router.register('categorias', CategoriaViewSet, basename='categoria')
+router.register('proveedores', ProveedorViewSet, basename='proveedor')
 
 
 urlpatterns = [
@@ -53,6 +57,6 @@ urlpatterns = [
         name='api_dashboard'
     ),
 
-    # Productos y movimientos (rutas generadas por el router)
+    # Productos, movimientos, categorías y proveedores (rutas del router)
     path('', include(router.urls)),
 ]

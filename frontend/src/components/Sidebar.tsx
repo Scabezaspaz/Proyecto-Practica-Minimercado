@@ -7,6 +7,8 @@ type NavItem = { to: string; icon: IconName; label: string; end?: boolean }
 const ITEMS: NavItem[] = [
   { to: '/', icon: 'dashboard', label: 'Panel de control', end: true },
   { to: '/productos', icon: 'box', label: 'Productos' },
+  { to: '/categorias', icon: 'layers', label: 'Categorías' },
+  { to: '/proveedores', icon: 'truck', label: 'Proveedores' },
   { to: '/movimientos', icon: 'clock', label: 'Movimientos' },
   { to: '/reportes', icon: 'calendar', label: 'Reportes' },
 ]

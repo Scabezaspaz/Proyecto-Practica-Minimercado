@@ -7,6 +7,8 @@ import Productos from './pages/Productos'
 import ProductoDetalle from './pages/ProductoDetalle'
 import ReporteProducto from './pages/ReporteProducto'
 import Movimientos from './pages/Movimientos'
+import Categorias from './pages/Categorias'
+import Proveedores from './pages/Proveedores'
 import Reportes from './pages/Reportes'
 
 function App() {
@@ -25,6 +27,8 @@ function App() {
         <Route path="/productos" element={<Productos />} />
         <Route path="/productos/:id" element={<ProductoDetalle />} />
         <Route path="/productos/:id/reporte" element={<ReporteProducto />} />
+        <Route path="/categorias" element={<Categorias />} />
+        <Route path="/proveedores" element={<Proveedores />} />
         <Route path="/movimientos" element={<Movimientos />} />
         <Route path="/reportes" element={<Reportes />} />
       </Route>

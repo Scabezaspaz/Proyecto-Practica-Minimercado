@@ -6,9 +6,35 @@ export interface Producto {
   descripcion: string
   unidad_medida: string
   unidad_medida_display: string
+  categoria: string | null
+  categoria_nombre: string | null
+  proveedor: string | null
+  proveedor_nombre: string | null
   stock_actual: number
   stock_minimo: number
   stock_bajo: boolean
+  activo: boolean
+  fecha_creacion: string
+}
+
+export interface Categoria {
+  id: string
+  nombre: string
+  descripcion: string
+  total_productos: number
+  activo: boolean
+  fecha_creacion: string
+}
+
+export interface Proveedor {
+  id: string
+  nombre: string
+  nit: string
+  contacto: string
+  telefono: string
+  correo: string
+  direccion: string
+  total_productos: number
   activo: boolean
   fecha_creacion: string
 }

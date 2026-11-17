@@ -7,7 +7,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
-from inventario.models import Producto
+from inventario.models import Categoria, Producto, Proveedor
 
 User = get_user_model()
 
@@ -43,4 +43,25 @@ def producto(db):
         unidad_medida='kg',
         stock_actual=Decimal('10.00'),
         stock_minimo=Decimal('2.00'),
+    )
+
+
+@pytest.fixture
+def categoria(db):
+    """Categoría de prueba."""
+    return Categoria.objects.create(
+        nombre='Granos',
+        descripcion='Granos y cereales',
+    )
+
+
+@pytest.fixture
+def proveedor(db):
+    """Proveedor de prueba."""
+    return Proveedor.objects.create(
+        nombre='Finca La Esperanza',
+        nit='900123456-7',
+        contacto='Ana Pérez',
+        telefono='3001234567',
+        correo='ventas@laesperanza.com',
     )
