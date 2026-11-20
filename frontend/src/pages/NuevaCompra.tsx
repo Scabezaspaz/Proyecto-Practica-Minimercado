@@ -2,11 +2,13 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import ProductPicker from '../components/ProductPicker'
+import { CantidadInput, PesosInput } from '../components/NumeroInput'
 import { createCompra } from '../api/compras'
 import { getProductos } from '../api/productos'
 import { proveedoresApi } from '../api/proveedores'
 import { apiErrorMessage } from '../api/errors'
 import { fmtMoneda, hoyISO } from '../lib/format'
+import { cantidadAApi, cantidadANumero, pesosAApi, pesosANumero } from '../lib/numeros'
 import { toast } from '../lib/toast'
 import type { Producto, Proveedor } from '../api/types'
 
@@ -16,7 +18,7 @@ let siguienteKey = 1
 const lineaVacia = (): Linea => ({ key: siguienteKey++, producto: '', cantidad: '', precio: '' })
 
 function subtotal(l: Linea): number {
-  return Math.round((Number(l.cantidad) || 0) * (Number(l.precio) || 0) * 100) / 100
+  return Math.round(cantidadANumero(l.cantidad) * pesosANumero(l.precio) * 100) / 100
 }
 
 export default function NuevaCompra() {
@@ -63,9 +65,9 @@ export default function NuevaCompra() {
     if (fechaCompra && fechaCompra > hoyISO()) e.fecha_compra = 'La fecha de compra no puede ser futura.'
     const completas = lineas.filter((l) => l.producto)
     if (completas.length === 0) e.detalles = 'Agrega al menos un producto a la compra.'
-    else if (completas.some((l) => !(Number(l.cantidad) > 0)))
+    else if (completas.some((l) => !(cantidadANumero(l.cantidad) > 0)))
       e.detalles = 'La cantidad de cada producto debe ser mayor que cero.'
-    else if (completas.some((l) => l.precio === '' || Number(l.precio) < 0))
+    else if (completas.some((l) => pesosAApi(l.precio) === ''))
       e.detalles = 'Indica el precio unitario de cada producto.'
     return e
   }
@@ -89,7 +91,11 @@ export default function NuevaCompra() {
         observacion: observacion.trim(),
         detalles: lineas
           .filter((l) => l.producto)
-          .map((l) => ({ producto: l.producto, cantidad: l.cantidad, precio_unitario: l.precio })),
+          .map((l) => ({
+            producto: l.producto,
+            cantidad: cantidadAApi(l.cantidad),
+            precio_unitario: pesosAApi(l.precio),
+          })),
       })
       toast('Compra registrada. El stock se actualizó.', 'success')
       navigate(`/compras/${compra.id}`, { replace: true })
@@ -235,18 +241,14 @@ export default function NuevaCompra() {
                     </td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <input className="input" type="number" min="0.01" step="0.01" aria-label="Cantidad"
-                          value={l.cantidad} placeholder="0"
-                          onWheel={(e) => e.currentTarget.blur()}
-                          onChange={(e) => cambiarLinea(l.key, { cantidad: e.target.value })} />
+                        <CantidadInput aria-label="Cantidad" value={l.cantidad} placeholder="0"
+                          onChange={(v) => cambiarLinea(l.key, { cantidad: v })} />
                         <span className="hint">{prod?.unidad_medida}</span>
                       </div>
                     </td>
                     <td>
-                      <input className="input" type="number" min="0" step="0.01" aria-label="Precio unitario"
-                        value={l.precio} placeholder="$ 0"
-                        onWheel={(e) => e.currentTarget.blur()}
-                        onChange={(e) => cambiarLinea(l.key, { precio: e.target.value })} />
+                      <PesosInput aria-label="Precio unitario" value={l.precio} placeholder="Ej: 1.200"
+                        onChange={(v) => cambiarLinea(l.key, { precio: v })} />
                     </td>
                     <td className="num">{fmtMoneda(subtotal(l))}</td>
                     <td>

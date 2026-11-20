@@ -1,5 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import Icon from './Icon'
+import { CantidadInput, PesosInput } from './NumeroInput'
+import { cantidadAApi, cantidadANumero, pesosAApi } from '../lib/numeros'
 import SelectMenu from './SelectMenu'
 import ProductPicker from './ProductPicker'
 import type { Producto } from '../api/types'
@@ -64,7 +66,7 @@ export default function MovimientoModal({ tipoInicial, productoIdInicial, onClos
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
 
-    const c = Number(cantidad)
+    const c = cantidadANumero(cantidad)
     if (!c || c <= 0) {
       setErrorCantidad('Ingresa una cantidad mayor que cero.')
       return
@@ -81,7 +83,7 @@ export default function MovimientoModal({ tipoInicial, productoIdInicial, onClos
       await createMovimiento({
         producto: productoId,
         tipo_movimiento: tipo,
-        cantidad,
+        cantidad: cantidadAApi(cantidad),
         observacion: observacion.trim(),
         // Los datos de factura solo se envían en las entradas.
         ...(tipo === 'ENTRADA'
@@ -89,7 +91,7 @@ export default function MovimientoModal({ tipoInicial, productoIdInicial, onClos
               numero_factura: numeroFactura.trim(),
               fecha_pago_factura: fechaPago || null,
               banco_pago: banco.trim(),
-              precio_factura: precio ? precio.replace(/\./g, '') : null,
+              precio_factura: pesosAApi(precio) || null,
             }
           : {}),
       })
@@ -167,19 +169,14 @@ export default function MovimientoModal({ tipoInicial, productoIdInicial, onClos
 
                 <div className={`field ${errorCantidad ? 'invalid' : ''}`}>
                   <label htmlFor="m-cant">Cantidad</label>
-                  <input
-                    className="input"
+                  <CantidadInput
                     id="m-cant"
-                    type="number"
-                    min="0.01"
-                    step="0.01"
                     value={cantidad}
-                    onChange={(e) => {
-                      setCantidad(e.target.value)
+                    onChange={(v) => {
+                      setCantidad(v)
                       if (errorCantidad) setErrorCantidad('')
                     }}
-                    onWheel={(e) => e.currentTarget.blur()}
-                    placeholder="0.00"
+                    placeholder="0,00"
                   />
                   {prod && (
                     <span className="hint">
@@ -224,17 +221,10 @@ export default function MovimientoModal({ tipoInicial, productoIdInicial, onClos
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 10 }}>
                       <div className="field" style={{ margin: 0 }}>
                         <label htmlFor="m-precio" className="hint">Precio (COP)</label>
-                        <input
-                          className="input"
+                        <PesosInput
                           id="m-precio"
-                          type="text"
-                          inputMode="numeric"
                           value={precio}
-                          onChange={(e) => {
-                            // Solo dígitos; se muestran con puntos de miles (es-CO).
-                            const raw = e.target.value.replace(/\D/g, '')
-                            setPrecio(raw ? Number(raw).toLocaleString('es-CO') : '')
-                          }}
+                          onChange={setPrecio}
                           placeholder="Ej: 1.000.000"
                         />
                       </div>

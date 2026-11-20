@@ -1,5 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import Icon from './Icon'
+import { CantidadInput } from './NumeroInput'
+import { cantidadAApi, cantidadDesdeApi } from '../lib/numeros'
 import type { Categoria, Producto, Proveedor } from '../api/types'
 import {
   createProducto,
@@ -53,8 +55,8 @@ export default function ProductoModal({ producto, onClose, onSaved }: Props) {
       setNombre(producto.nombre)
       setDescripcion(producto.descripcion || '')
       setUnidad(producto.unidad_medida)
-      setStockActual(String(producto.stock_actual))
-      setStockMinimo(String(producto.stock_minimo))
+      setStockActual(cantidadDesdeApi(producto.stock_actual))
+      setStockMinimo(cantidadDesdeApi(producto.stock_minimo))
       setCategoria(producto.categoria)
       setProveedor(producto.proveedor ?? '')
     }
@@ -80,7 +82,7 @@ export default function ProductoModal({ producto, onClose, onSaved }: Props) {
           nombre: nombre.trim(),
           descripcion: descripcion.trim(),
           unidad_medida: unidad,
-          stock_minimo: stockMinimo,
+          stock_minimo: cantidadAApi(stockMinimo) || '0',
           categoria,
           proveedor: proveedor || null,
         })
@@ -90,8 +92,8 @@ export default function ProductoModal({ producto, onClose, onSaved }: Props) {
           nombre: nombre.trim(),
           descripcion: descripcion.trim(),
           unidad_medida: unidad,
-          stock_actual: stockActual,
-          stock_minimo: stockMinimo,
+          stock_actual: cantidadAApi(stockActual) || '0',
+          stock_minimo: cantidadAApi(stockMinimo) || '0',
           categoria,
           proveedor: proveedor || null,
         }
@@ -199,31 +201,13 @@ export default function ProductoModal({ producto, onClose, onSaved }: Props) {
 
               <div className="field">
                 <label htmlFor="p-min">Stock mínimo</label>
-                <input
-                  className="input"
-                  id="p-min"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={stockMinimo}
-                  onChange={(e) => setStockMinimo(e.target.value)}
-                  onWheel={(e) => e.currentTarget.blur()}
-                />
+                <CantidadInput id="p-min" value={stockMinimo} onChange={setStockMinimo} placeholder="0" />
               </div>
 
               {!esEdicion && (
                 <div className="field">
                   <label htmlFor="p-actual">Stock inicial</label>
-                  <input
-                    className="input"
-                    id="p-actual"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={stockActual}
-                    onChange={(e) => setStockActual(e.target.value)}
-                    onWheel={(e) => e.currentTarget.blur()}
-                  />
+                  <CantidadInput id="p-actual" value={stockActual} onChange={setStockActual} placeholder="0" />
                 </div>
               )}
 
