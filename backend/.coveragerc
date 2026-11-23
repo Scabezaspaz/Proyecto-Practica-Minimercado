@@ -1,0 +1,13 @@
+# Configuración de la medición de cobertura (pytest --cov).
+# Solo se mide el código de la aplicación: las pruebas y las migraciones
+# se excluyen porque inflarían el porcentaje.
+[run]
+source = inventario
+omit =
+    inventario/tests.py
+    inventario/test_*.py
+    inventario/migrations/*
+
+[report]
+precision = 1
+sort = Cover

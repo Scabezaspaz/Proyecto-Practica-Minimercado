@@ -16,6 +16,11 @@ env/
 # Base de datos local (SQLite, si se usa)
 *.sqlite3
 
+# Cobertura de pruebas
+.coverage
+htmlcov/
+.pytest_cache/
+
 # Django
 /backend/staticfiles/
 /backend/media/
