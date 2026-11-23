@@ -112,11 +112,27 @@ La aplicación quedará disponible en:
 
 ## Ejecutar las pruebas
 
-El proyecto incluye pruebas automatizadas de los modelos y del control de acceso:
+El proyecto incluye 101 pruebas automatizadas (pytest) de los modelos, la API REST, los módulos de categorías, proveedores y compras, y el control de acceso. Se ejecutan desde la carpeta `backend`, con PostgreSQL encendido:
 
 ```bash
-python manage.py test
+pytest
 ```
+
+### Medir la cobertura
+
+Para ver qué porcentaje del código recorren las pruebas:
+
+```bash
+pytest --cov
+```
+
+La configuración está en `.coveragerc`: solo se mide el código de la aplicación (se excluyen las pruebas y las migraciones). Para un reporte detallado en el navegador, con las líneas no cubiertas resaltadas:
+
+```bash
+pytest --cov --cov-report=html
+```
+
+El reporte queda en `backend/htmlcov/index.html`.
 
 ## Estructura del backend
 
